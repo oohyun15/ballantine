@@ -190,3 +190,9 @@ function send_to_terminal () {
   done
   rm -rf $MAIN_PATH/commit_log
 }
+
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+if [ -n "$1" ]; then type=$1; else type='terminal'; fi
+if [ -n "$2" ]; then from=$2; else from='production'; fi
+if [ -n "$3" ]; then to=$3; else to=$current_branch; fi
+diff_commits $type $from $to
