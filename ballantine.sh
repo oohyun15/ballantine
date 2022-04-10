@@ -100,7 +100,11 @@ function diff_commits () {
   TMP_PATH='/tmp'
   mkdir $TMP_PATH/commit_log &> /dev/null
   MAIN_PATH=`pwd`
-  SUB_PATH=(`git ls-tree HEAD vendor/gems/* | awk '/commit/{print $4}'`)
+  if test -f '.gitmodules'; then
+    SUB_PATH=(`cat .gitmodules | grep path | awk '/path/{print $3}'`)
+  else
+    SUB_PATH=()
+  fi
   MAIN_URL=$(github_url `git config --get remote.origin.url`)
   CUR_BRANCH=`git rev-parse --abbrev-ref HEAD`
 
@@ -108,11 +112,11 @@ function diff_commits () {
   git checkout $from -f &> /dev/null
   git pull -f &> /dev/null
   MAIN_FROM=`git --no-pager log -1 --format='%h'`
-  SUB_FROM=(`git ls-tree HEAD vendor/gems/* | awk '/commit/{print $3}' | tr '\r\n' ' ' | xargs`)
+  SUB_FROM=(`git ls-tree HEAD $SUB_PATH | awk '/commit/{print $3}' | tr '\r\n' ' ' | xargs`)
   git checkout $to -f &> /dev/null
   git pull -f &> /dev/null
   MAIN_TO=`git --no-pager log -1 --format='%h'`
-  SUB_TO=(`git ls-tree HEAD vendor/gems/* | awk '/commit/{print $3}' | tr '\r\n' ' ' | xargs`)
+  SUB_TO=(`git ls-tree HEAD $SUB_PATH | awk '/commit/{print $3}' | tr '\r\n' ' ' | xargs`)
   git checkout $CUR_BRANCH -f &> /dev/null
 
   # check main application's commits
@@ -151,11 +155,10 @@ function send_to_slack () {
   done
 
   # check script actor
-  if [ -z ${GITHUB_ACTOR+x} ];
-   then
-     ACTOR=`git config user.name`
-   else
-     ACTOR=$GITHUB_ACTOR
+  if [ -z ${GITHUB_ACTOR+x} ]; then
+    ACTOR=`git config user.name`
+  else
+    ACTOR=$GITHUB_ACTOR
   fi
   ACTOR=`echo $ACTOR | sed -e 's/ /-/g'`
   rm -rf $TMP_PATH/commit_log
