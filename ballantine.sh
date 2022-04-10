@@ -69,7 +69,7 @@ function diff_commits () {
   mkdir $TMP_PATH/commit_log &> /dev/null
   MAIN_PATH=`pwd`
   if test -f '.gitmodules'; then
-    SUB_PATH=(`cat .gitmodules | grep path | awk '/path/{print $3}'`)
+    SUB_PATH=(`cat .gitmodules | grep path | awk '/path/{print $3}' | sort -u`)
   else
     SUB_PATH=()
   fi
@@ -80,13 +80,12 @@ function diff_commits () {
   git checkout $from -f &> /dev/null
   git pull -f &> /dev/null
   MAIN_FROM=`git --no-pager log -1 --format='%h'`
-  SUB_FROM=(`git ls-tree HEAD $SUB_PATH | awk '/commit/{print $3}' | tr '\r\n' ' ' | xargs`)
+  SUB_FROM=(`git ls-tree HEAD ${SUB_PATH[@]} | awk '/commit/{print $3}' | tr '\r\n' ' ' | xargs`)
   git checkout $to -f &> /dev/null
   git pull -f &> /dev/null
   MAIN_TO=`git --no-pager log -1 --format='%h'`
-  SUB_TO=(`git ls-tree HEAD $SUB_PATH | awk '/commit/{print $3}' | tr '\r\n' ' ' | xargs`)
+  SUB_TO=(`git ls-tree HEAD ${SUB_PATH[@]} | awk '/commit/{print $3}' | tr '\r\n' ' ' | xargs`)
   git checkout $CUR_BRANCH -f &> /dev/null
-
   # check main application's commits
   check_commits $MAIN_FROM $MAIN_TO $MAIN_URL
 
