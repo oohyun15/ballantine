@@ -7,10 +7,6 @@ function diff_commits () {
   TYPE=$1
   FROM=$2
   TO=$3
-  if [[ $TYPE != 'slack' && $TYPE != 'bash' && $TYPE != 'terminal' ]]; then
-    echo "\$1 argument($TYPE) must be of slack, terminal(or bash)"
-    exit 1
-  fi
 
   # check arguement is tag
   local from=$(check_tag $FROM)

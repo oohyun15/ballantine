@@ -18,13 +18,13 @@ source src/diff_commits.sh
 type='terminal'
 while getopts "hs" opt; do
   case $opt in
-    s)
-      type='slack'
-      shift;;
     h)
       echo "help"
       exit 0
       ;;
+    s)
+      type='slack'
+      shift;;
     \?)
       exit 1
   esac
@@ -33,4 +33,8 @@ done
 current_branch=$(git rev-parse --abbrev-ref HEAD)
 if [ -n "$1" ]; then from=$1; else from=$default_branch; fi
 if [ -n "$2" ]; then to=$2; else to=$current_branch; fi
+if [ -z "$from" ]; then
+  echo "target branch is required. run \`ballantine init\` or set target branch to argument."
+  exit 1
+fi
 diff_commits $type $from $to
