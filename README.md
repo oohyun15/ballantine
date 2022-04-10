@@ -1,2 +1,2 @@
-# homebrew-ballantine
+# ballantine
 describe your commits
