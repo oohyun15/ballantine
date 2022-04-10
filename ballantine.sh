@@ -60,7 +60,7 @@ function check_commits () {
 
   IFS=" " read -r -a authors <<< "$(tr ' ' '\n' <<< "${authors[@]}" | sort -u | tr '\n' ' ')"
   for author in ${authors[@]}; do
-    local file="$MAIN_PATH/commit_log/$author.log"
+    local file="$TMP_PATH/commit_log/$author.log"
     local format=$(commit_format $url)
     local commits=$(git --no-pager log --reverse --no-merges --author=$author --format="$format" --abbrev=7 $from..$to | sed -e 's/"/\\"/g')
 
@@ -111,7 +111,8 @@ function diff_commits () {
   # stash uncommitted codes & check commits are newest
   git stash save &> /dev/null
   git pull -f &> /dev/null
-  mkdir commit_log &> /dev/null
+  TMP_PATH='/tmp'
+  mkdir $TMP_PATH/commit_log &> /dev/null
   MAIN_PATH=`pwd`
   SUB_PATH=(`git ls-tree HEAD vendor/gems/* | awk '/commit/{print $4}'`)
   MAIN_URL=$(github_url `git config --get remote.origin.url`)
@@ -144,7 +145,7 @@ function diff_commits () {
   # unstash uncommitted codes
   git stash apply &> /dev/null
   
-  NUMBER=`ls $MAIN_PATH/commit_log | wc -l | xargs`
+  NUMBER=`ls $TMP_PATH/commit_log | wc -l | xargs`
   LAST_COMMIT=$(git --no-pager log --reverse --format="$(commit_format $MAIN_URL)" --abbrev=7 $MAIN_FROM..$MAIN_TO -1 | sed -e 's/"/\\"/g')
 
   # send slack to commit logs
@@ -157,7 +158,7 @@ function diff_commits () {
 
 function send_to_slack () {
   # set message each author
-  for log in $MAIN_PATH/commit_log/*
+  for log in $TMP_PATH/commit_log/*
   do
     author=`basename $log .log`
     MESSAGE+="{\"text\":\"- <@$author>\n$(cat $log)\",\"color\": \"#00B86A\"},"
@@ -171,7 +172,7 @@ function send_to_slack () {
      ACTOR=$GITHUB_ACTOR
   fi
   ACTOR=`echo $ACTOR | sed -e 's/ /-/g'`
-  rm -rf $MAIN_PATH/commit_log
+  rm -rf $TMP_PATH/commit_log
 
   curl -X POST --data-urlencode "payload={\"text\":\":check: *$APP_NAME* deployment request by <@${ACTOR}> (\`<$MAIN_URL/tree/$FROM|$FROM>\` <- \`<$MAIN_URL/tree/$TO|$TO>\` <$MAIN_URL/compare/$FROM...$TO|compare>)\n:technologist: Author: $NUMBER\nLast commit: $LAST_COMMIT\",\"attachments\":[${MESSAGE}]}" $WEBHOOK
 }
@@ -182,13 +183,13 @@ function send_to_terminal () {
   printf "${BLUE}Last Commit${NC}: ${LAST_COMMIT}\n"
 
   if [ $NUMBER == 0 ]; then exit; fi
-  for log in $MAIN_PATH/commit_log/*
+  for log in $TMP_PATH/commit_log/*
   do
     author=`basename $log .log`
     echo -en "${GREEN}@${author}${NC}\n "
     echo -e $(cat $log)
   done
-  rm -rf $MAIN_PATH/commit_log
+  rm -rf $TMP_PATH/commit_log
 }
 
 current_branch=$(git rev-parse --abbrev-ref HEAD)
