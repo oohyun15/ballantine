@@ -94,20 +94,6 @@ function diff_commits () {
   local from=$(check_tag $FROM)
   local to=$(check_tag $TO)
 
-  # fetch if `from` or `to` is tag based
-  case "$from" in
-  beta1|beta2|production)
-    git fetch origin tag $from -f &> /dev/null
-    git fetch origin tag deploy_base/$from -f &> /dev/null
-    ;;
-  esac
-  case "$to" in
-  beta1|beta2|production)
-    git fetch origin tag $to -f &> /dev/null
-    git fetch origin tag deploy_base/$to -f &> /dev/null
-    ;;
-  esac
-
   # stash uncommitted codes & check commits are newest
   git stash save &> /dev/null
   git pull -f &> /dev/null
