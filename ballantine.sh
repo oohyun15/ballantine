@@ -7,6 +7,8 @@ YELLOW='\033[1;33m'
 BLUE='\033[1;34m'
 APP_NAME=$(basename -s .git `git config --get remote.origin.url`)
 
+source src/diff_commits.sh
+
 type='terminal'
 while getopts "hs" opt; do
   case $opt in

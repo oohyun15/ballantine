@@ -1,4 +1,7 @@
 #!/bin/bash
+
+source src/github_url.sh
+
 function diff_commits () {
   # set arguements
   TYPE=$1
