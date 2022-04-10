@@ -1,4 +1,5 @@
 #!/bin/bash
+
 NC='\033[0m'
 GRAY='\033[1;30m'
 RED='\033[1;31m'
@@ -50,6 +51,8 @@ if [ -z "$from" ]; then
   exit 1
 fi
 diff_commits $type $from $to
+
+# function definition
 
 function init() {
   echo "🍹 Init ballantine configuration"
