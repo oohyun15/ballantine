@@ -7,6 +7,12 @@ YELLOW='\033[1;33m'
 BLUE='\033[1;34m'
 APP_NAME=$(basename -s .git `git config --get remote.origin.url`)
 
+if [[ $1 == 'init' ]]; then
+  source src/init.sh
+  init
+fi
+
+source ~/.blntrc
 source src/diff_commits.sh
 
 type='terminal'
@@ -25,7 +31,6 @@ while getopts "hs" opt; do
 done
 
 current_branch=$(git rev-parse --abbrev-ref HEAD)
-if [ -n "$1" ]; then from=$1; else from='production'; fi
+if [ -n "$1" ]; then from=$1; else from=$default_branch; fi
 if [ -n "$2" ]; then to=$2; else to=$current_branch; fi
-
 diff_commits $type $from $to

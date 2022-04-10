@@ -134,7 +134,7 @@ function send_to_slack () {
   ACTOR=`echo $ACTOR | sed -e 's/ /-/g'`
   rm -rf $TMP_PATH/commit_log
 
-  curl -X POST --data-urlencode "payload={\"text\":\":check: *$APP_NAME* deployment request by <@${ACTOR}> (\`<$MAIN_URL/tree/$FROM|$FROM>\` <- \`<$MAIN_URL/tree/$TO|$TO>\` <$MAIN_URL/compare/$FROM...$TO|compare>)\n:technologist: Author: $NUMBER\nLast commit: $LAST_COMMIT\",\"attachments\":[${MESSAGE}]}" $WEBHOOK
+  curl -X POST --data-urlencode "payload={\"text\":\":check: *$APP_NAME* deployment request by <@${ACTOR}> (\`<$MAIN_URL/tree/$FROM|$FROM>\` <- \`<$MAIN_URL/tree/$TO|$TO>\` <$MAIN_URL/compare/$FROM...$TO|compare>)\n:technologist: Author: $NUMBER\nLast commit: $LAST_COMMIT\",\"attachments\":[${MESSAGE}]}" $webhook
 }
 
 function send_to_terminal () {
