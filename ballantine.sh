@@ -84,9 +84,8 @@ function diff_commits () {
   TYPE=$1
   FROM=$2
   TO=$3
-
   if [[ $TYPE != 'slack' && $TYPE != 'bash' && $TYPE != 'terminal' ]]; then
-    echo "\$1 TYPE argument must be of slack, terminal(or bash)"
+    echo "\$1 argument($TYPE) must be of slack, terminal(or bash)"
     exit 1
   fi
 
@@ -181,8 +180,23 @@ function send_to_terminal () {
   rm -rf $TMP_PATH/commit_log
 }
 
+type='terminal'
+while getopts "hs" opt; do
+  case $opt in
+    s)
+      type='slack'
+      shift;;
+    h)
+      echo "help"
+      exit 0
+      ;;
+    \?)
+      exit 1
+  esac
+done
+
 current_branch=$(git rev-parse --abbrev-ref HEAD)
-if [ -n "$1" ]; then type=$1; else type='terminal'; fi
-if [ -n "$2" ]; then from=$2; else from='production'; fi
-if [ -n "$3" ]; then to=$3; else to=$current_branch; fi
+if [ -n "$1" ]; then from=$1; else from='production'; fi
+if [ -n "$2" ]; then to=$2; else to=$current_branch; fi
+
 diff_commits $type $from $to
