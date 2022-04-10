@@ -18,8 +18,11 @@ $ brew install ballantine
 $ ballantine
 
 # return commits between production and feature/task-1 branch
-$ ballantine terminal production feature/task-1
+$ ballantine production feature/task-1
 
 # reutrn commits between defaf88 and a39aa43 commits
-$ ballantine terminal defaf88 a39aa43
+$ ballantine defaf88 a39aa43
+
+# return commits to slack between production and beta
+$ ballantine -s production beta
 ```
