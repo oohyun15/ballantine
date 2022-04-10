@@ -3,7 +3,9 @@ describe your commits
 
 ![example](https://user-images.githubusercontent.com/52606560/162619226-7275122c-ca55-4cab-b270-552e23149d4c.gif)
 
-# install
+# Getting Started
+
+## install
 ```bash
 # add brew repository
 $ brew tap oohyun15/ballantine
@@ -12,7 +14,7 @@ $ brew tap oohyun15/ballantine
 $ brew install ballantine
 ```
 
-# how to use
+## how to use
 ```bash
 # return commits between production and main branch
 $ ballantine
