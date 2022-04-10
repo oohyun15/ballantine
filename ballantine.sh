@@ -21,13 +21,13 @@ function github_url () {
 
   for regex in "${regexes[@]}"; do
     if [[ "$1" =~ $regex ]]; then
-      organization=${BASH_REMATCH[2]}
+      owner=${BASH_REMATCH[2]}
       repository=${BASH_REMATCH[3]}
       break
     fi
   done
 
-  echo "https://github.com/${organization}/${repository}"
+  echo "https://github.com/${owner}/${repository}"
 }
 
 function check_tag () {
