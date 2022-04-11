@@ -6,6 +6,7 @@ RED='\033[1;31m'
 GREEN='\033[1;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[1;34m'
+CYAN='\033[1;36m'
 
 # function definition start
 
@@ -44,7 +45,7 @@ function manual() {
 }
 
 function print_env() {
-  printf "target branch: ${GREEN}${target_branch}${NC}\n"
+  printf "target branch: ${CYAN}${target_branch}${NC}\n"
   if [ -n "$blnt_webhook" ]; then
     printf "slack webhook: ${GRAY}${blnt_webhook}${NC}\n"
   else
@@ -207,7 +208,8 @@ function send_to_slack () {
 }
 
 function send_to_terminal () {
-  printf "Check commits before ${RED}${APP_NAME}${NC} deployment.\n"
+  printf "Check commits before ${RED}${APP_NAME}${NC} deployment."
+  printf "(${CYAN}${FROM}${NC} <- ${CYAN}${TO}${NC}) ${GRAY}$MAIN_URL/compare/$FROM...$TO${NC}\n"
   printf "${YELLOW}Author${NC}: ${NUMBER}\n"
   printf "${BLUE}Last Commit${NC}: ${LAST_COMMIT}\n"
 
