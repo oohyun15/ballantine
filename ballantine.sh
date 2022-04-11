@@ -128,6 +128,11 @@ function diff_commits () {
   NUMBER=`ls $TMP_PATH/commit_log | wc -l | xargs`
   LAST_COMMIT=$(git --no-pager log --reverse --format="$(commit_format $MAIN_URL)" --abbrev=7 $MAIN_FROM..$MAIN_TO -1 | sed -e 's/"/\\"/g')
 
+  if [ $NUMBER == 0 ]; then
+    echo "ERROR: there is no commits between $FROM and $TO"
+    exit 1
+  fi
+
   # send slack to commit logs
   if [ $TYPE == 'slack' ]; then
     send_to_slack
@@ -210,7 +215,6 @@ function send_to_terminal () {
   printf "${YELLOW}Author${NC}: ${NUMBER}\n"
   printf "${BLUE}Last Commit${NC}: ${LAST_COMMIT}\n"
 
-  if [ $NUMBER == 0 ]; then exit; fi
   for log in $TMP_PATH/commit_log/*
   do
     author=`basename $log .log`
