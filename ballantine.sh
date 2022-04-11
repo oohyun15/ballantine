@@ -237,8 +237,8 @@ while getopts "hos" opt; do
   esac
 done
 
-if ! [ -f ".git" ]; then
-  echo "ERROR: There is no \".git\" in `pwd` directory."
+if ! [ -d ".git" ]; then
+  echo "ERROR: There is no \".git\" directory in `pwd`."
   exit 1
 fi
 
