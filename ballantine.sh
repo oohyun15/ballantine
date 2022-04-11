@@ -129,7 +129,7 @@ function diff_commits () {
   LAST_COMMIT=$(git --no-pager log --reverse --format="$(commit_format $MAIN_URL)" --abbrev=7 $MAIN_FROM..$MAIN_TO -1 | sed -e 's/"/\\"/g')
 
   if [ $NUMBER == 0 ]; then
-    echo "ERROR: there is no commits between $FROM and $TO"
+    echo "ERROR: there is no commits between \"$FROM\" and \"$TO\""
     exit 1
   fi
 
@@ -261,8 +261,15 @@ APP_NAME=$(basename -s .git `git config --get remote.origin.url`)
 current_branch=$(git rev-parse --abbrev-ref HEAD)
 if [ -n "$1" ]; then from=$1; else from=$target_branch; fi
 if [ -n "$2" ]; then to=$2; else to=$current_branch; fi
+
 if [ -z "$from" ]; then
   echo "ERROR: target branch is required. run \`ballantine init\` or set target branch to argument."
   exit 1
 fi
+
+if [ "$from" == "$to" ]; then
+  echo "ERROR: target($from) and source($to) branch can't be equal."
+  exit 1
+fi
+
 diff_commits $type $from $to
