@@ -85,8 +85,7 @@ function diff_commits () {
   local from=$(check_tag $FROM)
   local to=$(check_tag $TO)
 
-  # stash uncommitted codes & check commits are newest
-  git stash save &> /dev/null
+  # check commits are newest
   git pull -f &> /dev/null
   TMP_PATH='/tmp'
   mkdir $TMP_PATH/commit_log &> /dev/null
@@ -122,14 +121,11 @@ function diff_commits () {
     cd ../../..
   done
 
-  # unstash uncommitted codes
-  git stash apply &> /dev/null
-
   NUMBER=`ls $TMP_PATH/commit_log | wc -l | xargs`
   LAST_COMMIT=$(git --no-pager log --reverse --format="$(commit_format $MAIN_URL)" --abbrev=7 $MAIN_FROM..$MAIN_TO -1 | sed -e 's/"/\\"/g')
 
   if [ $NUMBER == 0 ]; then
-    echo "ERROR: there is no commits between \"$FROM\" and \"$TO\""
+    echo "ERROR: There is no commits between \"$FROM\" and \"$TO\""
     exit 1
   fi
 
@@ -257,18 +253,25 @@ if ! [ -d ".git" ]; then
   exit 1
 fi
 
+uncommitted=$(git diff --name-only)
+if [ -n "$uncommitted" ]; then
+ echo "ERROR: Uncommitted file exists."
+ echo "$uncommitted"
+ exit 1
+fi
+
 APP_NAME=$(basename -s .git `git config --get remote.origin.url`)
 current_branch=$(git rev-parse --abbrev-ref HEAD)
 if [ -n "$1" ]; then from=$1; else from=$target_branch; fi
 if [ -n "$2" ]; then to=$2; else to=$current_branch; fi
 
 if [ -z "$from" ]; then
-  echo "ERROR: target branch is required. run \`ballantine init\` or set target branch to argument."
+  echo "ERROR: Target branch is required. run \`ballantine init\` or set target branch to argument."
   exit 1
 fi
 
 if [ "$from" == "$to" ]; then
-  echo "ERROR: target($from) and source($to) branch can't be equal."
+  echo "ERROR: Target($from) and source($to) branch can't be equal."
   exit 1
 fi
 
