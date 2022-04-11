@@ -253,7 +253,7 @@ if ! [ -d ".git" ]; then
   exit 1
 fi
 
-uncommitted=$(git diff --name-only)
+uncommitted=$(git diff HEAD --name-only)
 if [ -n "$uncommitted" ]; then
  echo "ERROR: Uncommitted file exists."
  echo "$uncommitted"
