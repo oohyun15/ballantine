@@ -11,7 +11,7 @@ CYAN='\033[1;36m'
 # function definition start
 
 function init() {
-  echo "🍹 Init ballantine configuration"
+  echo "🥃 Init ballantine configuration"
 
   echo "Q. Set default target branch (ex. production)"
   echo -n "> "
