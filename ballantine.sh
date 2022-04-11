@@ -24,6 +24,9 @@ function init() {
   touch ~/.blntrc
   echo "target_branch=$target_branch" >> ~/.blntrc
   echo "webhook=$webhook" >> ~/.blntrc
+  source ~/.blntrc &> /dev/null
+  echo
+  print_env
 }
 
 function manual() {
@@ -38,6 +41,15 @@ function manual() {
   echo "-h: help"
   echo "-o: check ballantine option values."
   echo "-s: send to slack using slack webhook URL."
+}
+
+function print_env() {
+  printf "target branch: ${GREEN}${target_branch}${NC}\n"
+  if [ -n "$webhook" ]; then
+    printf "slack webhook: ${GRAY}${webhook}${NC}\n"
+  else
+    printf "slack webhook: ${GRAY}undefined${NC}\n"
+  fi
 }
 
 # reference: https://github.com/desktop/desktop/blob/a7bca44088b105a04714dc4628f4af50f6f179c3/app/src/lib/remote-parsing.ts#L27-L44
@@ -224,8 +236,7 @@ while getopts "hos" opt; do
       exit 0
       ;;
     o)
-      echo "target branch: $target_branch"
-      echo "slack webhook: $webhook"
+      print_env
       exit 0
       ;;
     s)
