@@ -255,7 +255,7 @@ fi
 
 uncommitted=$(git diff HEAD --name-only)
 if [ -n "$uncommitted" ]; then
- echo "ERROR: Uncommitted file exists."
+ echo "ERROR: Uncommitted file exists. stash or commit uncommitted files."
  echo "$uncommitted"
  exit 1
 fi
