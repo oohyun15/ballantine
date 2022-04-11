@@ -18,12 +18,12 @@ function init() {
 
   echo "Q. Set slack webhook (optional)"
   echo -n "> "
-  read -r webhook
+  read -r blnt_webhook
 
   rm ~/.blntrc &> /dev/null
   touch ~/.blntrc
   echo "target_branch=$target_branch" >> ~/.blntrc
-  echo "webhook=$webhook" >> ~/.blntrc
+  echo "blnt_webhook=$blnt_webhook" >> ~/.blntrc
   source ~/.blntrc &> /dev/null
   echo
   print_env
@@ -45,8 +45,8 @@ function manual() {
 
 function print_env() {
   printf "target branch: ${GREEN}${target_branch}${NC}\n"
-  if [ -n "$webhook" ]; then
-    printf "slack webhook: ${GRAY}${webhook}${NC}\n"
+  if [ -n "$blnt_webhook" ]; then
+    printf "slack webhook: ${GRAY}${blnt_webhook}${NC}\n"
   else
     printf "slack webhook: ${GRAY}undefined${NC}\n"
   fi
@@ -202,7 +202,7 @@ function send_to_slack () {
   ACTOR=`echo $ACTOR | sed -e 's/ /-/g'`
   rm -rf $TMP_PATH/commit_log
 
-  curl -X POST --data-urlencode "payload={\"text\":\":check: *$APP_NAME* deployment request by <@${ACTOR}> (\`<$MAIN_URL/tree/$FROM|$FROM>\` <- \`<$MAIN_URL/tree/$TO|$TO>\` <$MAIN_URL/compare/$FROM...$TO|compare>)\n:technologist: Author: $NUMBER\nLast commit: $LAST_COMMIT\",\"attachments\":[${MESSAGE}]}" $webhook
+  curl -X POST --data-urlencode "payload={\"text\":\":check: *$APP_NAME* deployment request by <@${ACTOR}> (\`<$MAIN_URL/tree/$FROM|$FROM>\` <- \`<$MAIN_URL/tree/$TO|$TO>\` <$MAIN_URL/compare/$FROM...$TO|compare>)\n:technologist: Author: $NUMBER\nLast commit: $LAST_COMMIT\",\"attachments\":[${MESSAGE}]}" $blnt_webhook
 }
 
 function send_to_terminal () {
