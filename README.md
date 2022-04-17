@@ -34,3 +34,9 @@ $ ballantine defaf88 a39aa43
 # return commits to slack between production and beta
 $ ballantine -s production beta
 ```
+
+## update
+```bash
+# update ballantine
+$ brew upgrade ballantine
+```
