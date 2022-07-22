@@ -3,6 +3,13 @@
 
 ![example](https://user-images.githubusercontent.com/52606560/162619226-7275122c-ca55-4cab-b270-552e23149d4c.gif)
 
+or print commits to slack channel using slack option.
+```bash
+ballantine -s production beta1
+```
+
+![image](https://user-images.githubusercontent.com/52606560/180467424-de1e4efd-7016-472e-b376-b6341cf78ab6.png)
+
 # Getting Started
 
 ## install
