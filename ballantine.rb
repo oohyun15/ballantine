@@ -172,7 +172,7 @@ class Ballantine < Thor
       puts "ERROR: There is no commits between \"#{from}\" and \"#{to}\""
       exit 1
     end
-    last_commit = `git --no-pager log --reverse --format="#{commit_format(url)}" --abbrev=7 #{from}..#{to} -1`
+    last_commit = `git --no-pager log --reverse --format="#{commit_format(url)}" --abbrev=7 #{from}..#{to} -1`.strip
 
     case @_options[:type]
     when TYPE_TERMINAL
