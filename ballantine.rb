@@ -110,7 +110,7 @@ class Ballantine < Thor
       file = File.open(file_path, 'a')
       case @_options[:type]
       when TYPE_TERMINAL
-        file.write("> #{P_BLUE}#{repo}#{P_NC}: #{count} new #{var}\n")
+        file.write(" > #{P_BLUE}#{repo}#{P_NC}: #{count} new #{var}\n")
         file.write(commits)
         file.close
       when TYPE_SLACK
@@ -156,7 +156,7 @@ class Ballantine < Thor
   def commit_format(url)
     case @_options[:type]
     when TYPE_TERMINAL
-      "- #{P_YELLOW}%h#{P_NC} %s #{P_GRAY}#{url}/commit/%H#{P_NC}"
+      " - #{P_YELLOW}%h#{P_NC} %s #{P_GRAY}#{url}/commit/%H#{P_NC}"
     when TYPE_SLACK
       "\`<#{url}/commit/%H|%h\` %s - %an"
     end
@@ -176,14 +176,13 @@ class Ballantine < Thor
 
     case @_options[:type]
     when TYPE_TERMINAL
-      puts "Check commits before #{P_RED}#{@app_name}#{P_NC} deployment."
-      puts "(#{P_CYAN}#{from}#{P_NC} <- #{P_CYAN}#{to}#{P_NC}) #{P_GRAY}#{url}/compare/#{from}...#{to}#{P_NC}"
+      puts "Check commits before #{P_RED}#{@app_name}#{P_NC} deployment. (#{P_CYAN}#{from}#{P_NC} <- #{P_CYAN}#{to}#{P_NC}) #{P_GRAY}#{url}/compare/#{from}...#{to}#{P_NC}"
       puts "#{P_YELLOW}Author#{P_NC}: #{number}"
       puts "#{P_BLUE}Last Commit#{P_NC}: #{last_commit}"
 
       logs.each do |log|
         author = log.chomp[/([\w-]+)\.log/, 1]
-        puts "#{P_GREEN}@#{author}#{P_NC}"
+        puts "\n#{P_GREEN}@#{author}#{P_NC}"
         puts File.read(log)
       end
     when TYPE_SLACK
