@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'thor'
+require 'fileutils'
 class Ballantine < Thor
   FILE_GITMODULES = '.gitmodules'
 
@@ -47,7 +48,7 @@ class Ballantine < Thor
     system 'git pull -f &> /dev/null'
 
     # find main, sub path
-    @temp_path = Dir.mkdir(TEMP_PATH) rescue TEMP_PATH
+    @temp_path = FileUtils.mkdir_p(TEMP_PATH)[0]
     @main_path = Dir.pwd
     @sub_path =
       if Dir[FILE_GITMODULES].any?
@@ -165,7 +166,8 @@ class Ballantine < Thor
   # @param [String] to
   # @param [String] url
   def send_commits(from, to, url)
-    number = Dir[@temp_path+'/*'].size
+    logs = Dir[@temp_path+'/*']
+    number = logs.size
     if number.zero?
       puts "ERROR: There is no commits between \"#{from}\" and \"#{to}\""
       exit 1
@@ -178,8 +180,17 @@ class Ballantine < Thor
       puts "(#{P_CYAN}#{from}#{P_NC} <- #{P_CYAN}#{to}#{P_NC}) #{P_GRAY}#{url}/compare/#{from}...#{to}#{P_NC}"
       puts "#{P_YELLOW}Author#{P_NC}: #{number}"
       puts "#{P_BLUE}Last Commit#{P_NC}: #{last_commit}"
+
+      logs.each do |log|
+        author = log.chomp[/([\w-]+)\.log/, 1]
+        puts "#{P_GREEN}@#{author}#{P_NC}"
+        puts File.read(log)
+      end
     when TYPE_SLACK
+      # not implemented
     end
+
+    FileUtils.rm_rf(@temp_path)
   end
 end
 
