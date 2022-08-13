@@ -36,6 +36,7 @@ class Ballantine < Thor
   method_option :type, aliases: '-t', default: TYPE_TERMINAL, enum: AVAILABLE_TYPES
   # @param [String] from
   # @param [String] to
+  # @return [Integer] exit code
   def diff(from, to)
     @_options = options
     @app_name = File.basename(`git config --get remote.origin.url`.chomp, '.git')
@@ -80,6 +81,8 @@ class Ballantine < Thor
     end
 
     send_commits(from, to, main_url)
+
+    exit 0
   end
 
   private
