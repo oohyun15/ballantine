@@ -54,6 +54,13 @@ class Ballantine < Thor
 
     # check commits
     check_commits(main_from, main_to, main_url)
+    @sub_path.each_with_index do |path, idx|
+      next if sub_from[idx] == sub_to[idx]
+      system "cd #{path}"
+      sub_url = github_url(`git config --get remote.origin.url`.chomp)
+      check_commits(sub_from[idx], sub_to[idx], sub_url)
+      system "cd #{@main_path}"
+    end
   end
 
   private
