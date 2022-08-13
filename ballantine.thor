@@ -10,6 +10,17 @@ class Ballantine < Thor
   P_BLUE='\033[1;34m'
   P_CYAN='\033[1;36m'
 
+  # reference: https://github.com/desktop/desktop/blob/a7bca44088b105a04714dc4628f4af50f6f179c3/app/src/lib/remote-parsing.ts#L27-L44
+  GITHUB_REGEXES = [
+    '^https?://(.+)/(.+)/(.+)\.git/?$', # protocol: https -> https://github.com/oohyun15/ballantine.git | https://github.com/oohyun15/ballantine.git/
+    '^https?://(.+)/(.+)/(.+)/?$',      # protocol: https -> https://github.com/oohyun15/ballantine | https://github.com/oohyun15/ballantine/
+    '^git@(.+):(.+)/(.+)\.git$',        # protocol: ssh   -> git@github.com:oohyun15/ballantine.git
+    '^git@(.+):(.+)/(.+)/?$',           # protocol: ssh   -> git@github.com:oohyun15/ballantine | git@github.com:oohyun15/ballantine/
+    '^git:(.+)/(.+)/(.+)\.git$',        # protocol: ssh   -> git:github.com/oohyun15/ballantine.git
+    '^git:(.+)/(.+)/(.+)/?$',           # protocol: ssh   -> git:github.com/oohyun15/ballantine | git:github.com/oohyun15/ballantine/
+    '^ssh://git@(.+)/(.+)/(.+)\.git$',  # protocol: ssh   -> ssh://git@github.com/oohyun15/ballantine.git
+  ].freeze
+
   TYPE_TERMINAL = 'terminal'
   TYPE_SLACK = 'slack'
   AVAILABLE_TYPES = [TYPE_TERMINAL, TYPE_SLACK].freeze
@@ -113,7 +124,11 @@ class Ballantine < Thor
   # @param [String] url
   # @return [String] github_url
   def github_url(url)
-    # not implemented
+    owner, repository =
+      GITHUB_REGEXES.each do |regex|
+        break [str[2], str[3]] if (str = url.match(regex))
+      end
+    "https://github.com/#{owner}/#{repository}"
   end
 
   # @param [String] hash
