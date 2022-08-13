@@ -38,7 +38,7 @@ class Ballantine < Thor
   # @param [String] to
   def diff(from, to)
     @_options = options
-    @app_name = `git config --get remote.origin.url`.chomp[/([\w-]+)\.git/, 1]
+    @app_name = File.basename(`git config --get remote.origin.url`.chomp, '.git')
 
     # check argument is tag
     from = check_tag(from)
@@ -96,7 +96,7 @@ class Ballantine < Thor
   # @param [String] url
   # @return [NilClass] nil
   def check_commits(from, to, url)
-    repo = `git config --get remote.origin.url`.chomp[/([\w-]+)\.git/, 1]
+    repo = File.basename(`git config --get remote.origin.url`.chomp, '.git')
     authors = `git --no-pager log --pretty=format:"%an" #{from}..#{to}`.split("\n").uniq.sort
 
     authors.each do |author|
