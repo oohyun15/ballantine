@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 require 'thor'
 class Ballantine < Thor
   FILE_GITMODULES = '.gitmodules'
