@@ -158,3 +158,5 @@ class Ballantine < Thor
     end
   end
 end
+
+Ballantine.start
