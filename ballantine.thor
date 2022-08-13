@@ -61,6 +61,12 @@ class Ballantine < Thor
       check_commits(sub_from[idx], sub_to[idx], sub_url)
       system "cd #{@main_path}"
     end
+
+    number = Dir[@temp_path+'/*'].size
+    if number.zero?
+      puts "ERROR: There is no commits between \"#{from}\" and \"#{to}\""
+      exit 1
+    end
   end
 
   private
@@ -69,6 +75,7 @@ class Ballantine < Thor
   # @return [String] hash
   def check_tag(name)
     # not implemented
+    name
   end
 
   # @param [String] from
