@@ -32,6 +32,10 @@ class Ballantine < Thor
 
   package_name 'Ballantine'
 
+  def initialize
+    @webhook = 'https://hooks.slack.com/services/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'
+  end
+
   desc 'diff', 'diff commits'
   method_option :type, aliases: '-t', default: TYPE_TERMINAL, enum: AVAILABLE_TYPES
   # @param [String] from
@@ -192,7 +196,27 @@ class Ballantine < Thor
         puts File.read(log)
       end
     when TYPE_SLACK
-      # not implemented
+      # set message for each author
+      message =
+        logs.map do |log|
+          author = log.chomp[/([\w-]+)\.log/, 1]
+          commits = File.read(log)
+          "{\"text\":\"- <@#{author}>\n#{commits}\",\"color\": \"#00B86A\"},"
+        end.join("\n")
+      actor = `git config user.name`
+
+      # send message to slack
+      require 'net/http'
+      require 'uri'
+      uri = URI.parse(@webhook)
+      request = Net::HTTP::Post.new(uri)
+      request.set_form_data(
+        'payload' => "{\"text\":\":check: *#{@app_name}* deployment request by <@#{actor}> (\`<#{url}/tree/#{from}|#{from}>\` <- \`<#{url}/tree/#{to}|#{to}>\` <#{url}/compare/#{from}...#{to}|compare>)\n:technologist: Author: #{number}\nLast commit: #{last_commit}\",\"attachments\":[#{message}]}"
+      )
+      req_options = { use_ssl: uri.scheme == 'https' }
+      response = Net::HTTP.start(uri.hostname, uri.port, req_options) do |http|
+        http.request(request)
+      end
     end
 
     FileUtils.rm_rf(@temp_path)
