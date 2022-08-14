@@ -85,15 +85,15 @@ class Ballantine < Thor
   # @return [NilClass] nil
   def preprocess(from, to)
     if Dir['.git'].empty?
-      raise "ERROR: There is no \".git\" in #{Dir.pwd}."
+      raise SystemCallError, "ERROR: There is no \".git\" in #{Dir.pwd}."
     end
 
     if (uncommitted = `git diff HEAD --name-only`.split("\n")).any?
-      raise "ERROR: Uncommitted file exists. stash or commit uncommitted files.\n#{uncommitted}"
+      raise SystemCallError, "ERROR: Uncommitted file exists. stash or commit uncommitted files.\n#{uncommitted}"
     end
 
     if from == to
-      raise "ERROR: target(#{from}) and source(#{to}) branch can't be equal."
+      raise ArgumentError, "ERROR: target(#{from}) and source(#{to}) branch can't be equal."
     end
 
     nil
@@ -172,8 +172,7 @@ class Ballantine < Thor
   def send_commits(from, to, url)
     authors = Author.all
     if authors.empty?
-      puts "ERROR: There is no commits between \"#{from}\" and \"#{to}\""
-      exit 1
+      raise ArgumentError, "ERROR: There is no commits between \"#{from}\" and \"#{to}\""
     end
     number = authors.size
     last_commit = `git --no-pager log --reverse --format="#{commit_format(url)}" --abbrev=7 #{from}..#{to} -1`.strip
