@@ -90,8 +90,11 @@ class Ballantine < Thor
   # @param [String] name
   # @return [String] hash
   def check_tag(name)
-    # not implemented
-    name
+    list = `git tag -l`.split("\n")
+    return name unless list.grep(name).any?
+
+    system "git fetch origin tag #{name} -f &> /dev/null"
+    `git rev-list -n 1 #{name}`.chomp[0...7]
   end
 
   # @param [String] from
