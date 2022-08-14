@@ -3,16 +3,10 @@
 require 'thor'
 require 'fileutils'
 require_relative 'src/author'
+require_relative 'lib/string'
+
 class Ballantine < Thor
   FILE_GITMODULES = '.gitmodules'
-
-  P_NC= "\e[0m"
-  P_GRAY= "\e[1;30m"
-  P_RED= "\e[1;31m"
-  P_GREEN= "\e[1;32m"
-  P_YELLOW= "\e[1;33m"
-  P_BLUE= "\e[1;34m"
-  P_CYAN= "\e[1;36m"
 
   # reference: https://github.com/desktop/desktop/blob/a7bca44088b105a04714dc4628f4af50f6f179c3/app/src/lib/remote-parsing.ts#L27-L44
   GITHUB_REGEXES = [
@@ -108,20 +102,7 @@ class Ballantine < Thor
       commits = `git --no-pager log --reverse --no-merges --author=#{author.name} --format="#{format}" --abbrev=7 #{from}..#{to}`.gsub('"', '\"')
       next if commits.empty?
       author.commits[repo] = commits.split("\n")
-
-      # legacy
-      # case @_options[:type]
-      # when TYPE_TERMINAL
-      #   file.write(" > #{P_BLUE}#{repo}#{P_NC}: #{count} new #{var}\n")
-      #   file.write(commits)
-      #   file.close
-      # when TYPE_SLACK
-      #   file.write("*#{repo}*: #{count} new #{var}")
-      #   file.write(commits)
-      #   file.close
-      # end
     end
-
     nil
   end
 
@@ -158,7 +139,7 @@ class Ballantine < Thor
   def commit_format(url)
     case @_options[:type]
     when TYPE_TERMINAL
-      " - #{P_YELLOW}%h#{P_NC} %s #{P_GRAY}#{url}/commit/%H#{P_NC}"
+      " - "+ "%h".yellow + " %s " + "#{url}/commit/%H".gray
     when TYPE_SLACK
       "<#{url}/commit/%H|%h> %s - %an"
     end
@@ -178,14 +159,10 @@ class Ballantine < Thor
 
     case @_options[:type]
     when TYPE_TERMINAL
-      puts "Check commits before #{P_RED}#{@app_name}#{P_NC} deployment. (#{P_CYAN}#{from}#{P_NC} <- #{P_CYAN}#{to}#{P_NC}) #{P_GRAY}#{url}/compare/#{from}...#{to}#{P_NC}"
-      puts "#{P_YELLOW}Author#{P_NC}: #{number}"
-      puts "#{P_BLUE}Last Commit#{P_NC}: #{last_commit}"
-
-      authors.each do |author|
-        puts "\n#{P_GREEN}@#{author.name}#{P_NC}"
-        author.print_commits
-      end
+      puts "Check commits before #{@app_name.red} deployment. (#{from.cyan} <- #{to.cyan}) " + "#{url}/compare/#{from}...#{to}".gray
+      puts "Author".yellow + ": #{number}"
+      puts "Last Commit".blue + ": #{last_commit}"
+      authors.map(&:print_commits)
     when TYPE_SLACK
       # set message for each author
       messages = authors.map(&:commits)

@@ -27,6 +27,12 @@ class Author
 
   # @return [NilClass] nil
   def print_commits
-    puts @commits
+    puts "\n@" + name.green
+    @commits.each do |repo, lists|
+      count = lists.size
+      word = count == 1 ? 'commit' : 'commits'
+      puts " > #{repo.blue}: #{count} new #{word}\n"
+      puts lists
+    end
   end
 end
