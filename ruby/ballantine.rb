@@ -94,11 +94,11 @@ class Ballantine < Thor
   # @return [NilClass] nil
   def check_commits(from, to, url)
     repo = File.basename(`git config --get remote.origin.url`.chomp, '.git')
-    names = `git --no-pager log --pretty=format:"%an" #{from}..#{to}`.split("\n").map{ |name| name.gsub(' ', '-')}.uniq.sort
+    names = `git --no-pager log --pretty=format:"%an" #{from}..#{to}`.split("\n").uniq.sort
     authors = names.map{ |name| Author.find_or_create_by(name) }
     authors.each do |author|
       format = commit_format(url)
-      commits = `git --no-pager log --reverse --no-merges --author=#{author.name} --format="#{format}" --abbrev=7 #{from}..#{to}`.gsub('"', '\"').gsub(/[\u0080-\u00ff]/, '')
+      commits = `git --no-pager log --reverse --no-merges --author="#{author.name}" --format="#{format}" --abbrev=7 #{from}..#{to}`.gsub('"', '\"').gsub(/[\u0080-\u00ff]/, '')
       next if commits.empty?
       author.commits[repo] = commits.split("\n")
     end
