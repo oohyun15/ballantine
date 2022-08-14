@@ -32,10 +32,6 @@ class Ballantine < Thor
 
   package_name 'Ballantine'
 
-  def initialize
-    @webhook = 'https://hooks.slack.com/services/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'
-  end
-
   desc 'diff', 'diff commits'
   method_option :type, aliases: '-t', default: TYPE_TERMINAL, enum: AVAILABLE_TYPES
   # @param [String] from
@@ -168,7 +164,7 @@ class Ballantine < Thor
     when TYPE_TERMINAL
       " - #{P_YELLOW}%h#{P_NC} %s #{P_GRAY}#{url}/commit/%H#{P_NC}"
     when TYPE_SLACK
-      "\`<#{url}/commit/%H|%h\` %s - %an"
+      "<#{url}/commit/%H|%h> %s - %an"
     end
   end
 
@@ -208,11 +204,14 @@ class Ballantine < Thor
       # send message to slack
       require 'net/http'
       require 'uri'
-      uri = URI.parse(@webhook)
+      require 'json'
+      uri = URI.parse(ENV['blnt_webhook'])
       request = Net::HTTP::Post.new(uri)
-      request.set_form_data(
-        'payload' => "{\"text\":\":check: *#{@app_name}* deployment request by <@#{actor}> (\`<#{url}/tree/#{from}|#{from}>\` <- \`<#{url}/tree/#{to}|#{to}>\` <#{url}/compare/#{from}...#{to}|compare>)\n:technologist: Author: #{number}\nLast commit: #{last_commit}\",\"attachments\":[#{message}]}"
-      )
+      request.content_type = 'application/json'
+      request.body = JSON.dump({
+        'text' => ":check: *#{@app_name}* deployment request by <@#{actor}> (\`<#{url}/tree/#{from}|#{from}>\` <- \`<#{url}/tree/#{to}|#{to}>\` <#{url}/compare/#{from}...#{to}|compare>)\n:technologist: Author: #{number}\nLast commit: #{last_commit}",
+        'attachments' => []
+      })
       req_options = { use_ssl: uri.scheme == 'https' }
       response = Net::HTTP.start(uri.hostname, uri.port, req_options) do |http|
         http.request(request)
