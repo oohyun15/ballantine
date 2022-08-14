@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require 'thor'
-require 'fileutils'
 require_relative 'src/author'
 require_relative 'lib/string'
 
