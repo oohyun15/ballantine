@@ -14,8 +14,6 @@ class Ballantine < Thor
   P_BLUE= "\e[1;34m"
   P_CYAN= "\e[1;36m"
 
-  TEMP_PATH = '/tmp/commit_log'
-
   # reference: https://github.com/desktop/desktop/blob/a7bca44088b105a04714dc4628f4af50f6f179c3/app/src/lib/remote-parsing.ts#L27-L44
   GITHUB_REGEXES = [
     '^https?://(.+)/(.+)/(.+)\.git/?$', # protocol: https -> https://github.com/oohyun15/ballantine.git | https://github.com/oohyun15/ballantine.git/
@@ -50,7 +48,6 @@ class Ballantine < Thor
     system 'git pull -f &> /dev/null'
 
     # find main, sub path
-    @temp_path = FileUtils.mkdir_p(TEMP_PATH)[0]
     @main_path = Dir.pwd
     @sub_path =
       if Dir[FILE_GITMODULES].any?
@@ -104,27 +101,25 @@ class Ballantine < Thor
   # @return [NilClass] nil
   def check_commits(from, to, url)
     repo = File.basename(`git config --get remote.origin.url`.chomp, '.git')
-    authors = `git --no-pager log --pretty=format:"%an" #{from}..#{to}`.split("\n").uniq.sort
-
+    names = `git --no-pager log --pretty=format:"%an" #{from}..#{to}`.split("\n").uniq.sort
+    authors = names.map{ |name| Author.find_or_create_by(name) }
     authors.each do |author|
-      file_path = @temp_path + "/#{author}.log"
       format = commit_format(url)
-      commits = `git --no-pager log --reverse --no-merges --author=#{author} --format="#{format}" --abbrev=7 #{from}..#{to}`.gsub('"', '\"')
+      commits = `git --no-pager log --reverse --no-merges --author=#{author.name} --format="#{format}" --abbrev=7 #{from}..#{to}`.gsub('"', '\"')
       next if commits.empty?
-      count = commits.split("\n").size
-      var = count == 1 ? 'commit' : 'commits'
+      author.commits[repo] = commits.split("\n")
 
-      file = File.open(file_path, 'a')
-      case @_options[:type]
-      when TYPE_TERMINAL
-        file.write(" > #{P_BLUE}#{repo}#{P_NC}: #{count} new #{var}\n")
-        file.write(commits)
-        file.close
-      when TYPE_SLACK
-        file.write("*#{repo}*: #{count} new #{var}")
-        file.write(commits)
-        file.close
-      end
+      # legacy
+      # case @_options[:type]
+      # when TYPE_TERMINAL
+      #   file.write(" > #{P_BLUE}#{repo}#{P_NC}: #{count} new #{var}\n")
+      #   file.write(commits)
+      #   file.close
+      # when TYPE_SLACK
+      #   file.write("*#{repo}*: #{count} new #{var}")
+      #   file.write(commits)
+      #   file.close
+      # end
     end
 
     nil
@@ -173,9 +168,8 @@ class Ballantine < Thor
   # @param [String] to
   # @param [String] url
   def send_commits(from, to, url)
-    logs = Dir[@temp_path+'/*']
-    number = logs.size
-    if number.zero?
+    authors = Author.all
+    if authors.empty?
       puts "ERROR: There is no commits between \"#{from}\" and \"#{to}\""
       exit 1
     end
@@ -187,19 +181,13 @@ class Ballantine < Thor
       puts "#{P_YELLOW}Author#{P_NC}: #{number}"
       puts "#{P_BLUE}Last Commit#{P_NC}: #{last_commit}"
 
-      logs.each do |log|
-        author = log.chomp[/([\w-]+)\.log/, 1]
-        puts "\n#{P_GREEN}@#{author}#{P_NC}"
-        puts File.read(log)
+      authors.eac do |author|
+        puts "\n#{P_GREEN}@#{author.name}#{P_NC}"
+        author.print_commits
       end
     when TYPE_SLACK
       # set message for each author
-      message =
-        logs.map do |log|
-          author = log.chomp[/([\w-]+)\.log/, 1]
-          commits = File.read(log)
-          "{\"text\":\"- <@#{author}>\n#{commits}\",\"color\": \"#00B86A\"},"
-        end.join("\n")
+      messages = authors.map(&:commits)
       actor = `git config user.name`
 
       # send message to slack
@@ -211,15 +199,13 @@ class Ballantine < Thor
       request.content_type = 'application/json'
       request.body = JSON.dump({
         'text' => ":check: *#{@app_name}* deployment request by <@#{actor}> (\`<#{url}/tree/#{from}|#{from}>\` <- \`<#{url}/tree/#{to}|#{to}>\` <#{url}/compare/#{from}...#{to}|compare>)\n:technologist: Author: #{number}\nLast commit: #{last_commit}",
-        'attachments' => []
+        'attachments' => messages
       })
       req_options = { use_ssl: uri.scheme == 'https' }
       response = Net::HTTP.start(uri.hostname, uri.port, req_options) do |http|
         http.request(request)
       end
     end
-
-    FileUtils.rm_rf(@temp_path)
   end
 end
 
