@@ -2,7 +2,7 @@
 
 require 'thor'
 require 'fileutils'
-require './src/author'
+require_relative 'src/author'
 class Ballantine < Thor
   FILE_GITMODULES = '.gitmodules'
 
@@ -173,6 +173,7 @@ class Ballantine < Thor
       puts "ERROR: There is no commits between \"#{from}\" and \"#{to}\""
       exit 1
     end
+    number = authors.size
     last_commit = `git --no-pager log --reverse --format="#{commit_format(url)}" --abbrev=7 #{from}..#{to} -1`.strip
 
     case @_options[:type]
@@ -181,7 +182,7 @@ class Ballantine < Thor
       puts "#{P_YELLOW}Author#{P_NC}: #{number}"
       puts "#{P_BLUE}Last Commit#{P_NC}: #{last_commit}"
 
-      authors.eac do |author|
+      authors.each do |author|
         puts "\n#{P_GREEN}@#{author.name}#{P_NC}"
         author.print_commits
       end
