@@ -99,7 +99,7 @@ class Ballantine < Thor
     authors = names.map{ |name| Author.find_or_create_by(name) }
     authors.each do |author|
       format = commit_format(url)
-      commits = `git --no-pager log --reverse --no-merges --author=#{author.name} --format="#{format}" --abbrev=7 #{from}..#{to}`.gsub('"', '\"')
+      commits = `git --no-pager log --reverse --no-merges --author=#{author.name} --format="#{format}" --abbrev=7 #{from}..#{to}`.gsub('"', '\"').gsub(/[\u0080-\u00ff]/, '')
       next if commits.empty?
       author.commits[repo] = commits.split("\n")
     end
@@ -148,6 +148,7 @@ class Ballantine < Thor
   # @param [String] from
   # @param [String] to
   # @param [String] url
+  # @return [NilClass] nil
   def send_commits(from, to, url)
     authors = Author.all
     if authors.empty?
@@ -172,7 +173,7 @@ class Ballantine < Thor
       require 'net/http'
       require 'uri'
       require 'json'
-      uri = URI.parse('https://hooks.slack.com/services/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')
+      uri = URI.parse(ENV['BLNT_WEBHOOK'])
       request = Net::HTTP::Post.new(uri)
       request.content_type = 'application/json'
       request.body = JSON.dump({
@@ -183,6 +184,7 @@ class Ballantine < Thor
       response = Net::HTTP.start(uri.hostname, uri.port, req_options) do |http|
         http.request(request)
       end
+      puts response.message
     end
   end
 end
