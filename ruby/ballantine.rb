@@ -30,7 +30,7 @@ class Ballantine < Thor
   # @param [String] to
   # @return [Integer] exit code
   def diff(from, to)
-    check_arguments(from, to)
+    preprocess(from, to)
 
     @_options = options
     @app_name = File.basename(`git config --get remote.origin.url`.chomp, '.git')
@@ -83,7 +83,7 @@ class Ballantine < Thor
   # @param [String] from
   # @param [String] to
   # @return [NilClass] nil
-  def check_arguments(from, to)
+  def preprocess(from, to)
     if Dir['.git'].empty?
       raise "ERROR: There is no \".git\" in #{Dir.pwd}."
     end
