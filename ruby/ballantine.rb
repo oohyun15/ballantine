@@ -141,7 +141,7 @@ class Ballantine < Thor
     when TYPE_TERMINAL
       " - "+ "%h".yellow + " %s " + "#{url}/commit/%H".gray
     when TYPE_SLACK
-      "<#{url}/commit/%H|%h> %s - %an"
+      "\\\`<#{url}/commit/%H|%h>\\\` %s - %an"
     end
   end
 
@@ -165,14 +165,14 @@ class Ballantine < Thor
       authors.map(&:print_commits)
     when TYPE_SLACK
       # set message for each author
-      messages = authors.map(&:commits)
+      messages = authors.map(&:serialize_commits)
       actor = `git config user.name`
 
       # send message to slack
       require 'net/http'
       require 'uri'
       require 'json'
-      uri = URI.parse(ENV['blnt_webhook'])
+      uri = URI.parse('https://hooks.slack.com/services/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')
       request = Net::HTTP::Post.new(uri)
       request.content_type = 'application/json'
       request.body = JSON.dump({
