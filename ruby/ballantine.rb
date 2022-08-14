@@ -30,6 +30,8 @@ class Ballantine < Thor
   # @param [String] to
   # @return [Integer] exit code
   def diff(from, to)
+    check_arguments(from, to)
+
     @_options = options
     @app_name = File.basename(`git config --get remote.origin.url`.chomp, '.git')
 
@@ -77,6 +79,25 @@ class Ballantine < Thor
   end
 
   private
+
+  # @param [String] from
+  # @param [String] to
+  # @return [NilClass] nil
+  def check_arguments(from, to)
+    if Dir['.git'].empty?
+      raise "ERROR: There is no \".git\" in #{Dir.pwd}."
+    end
+
+    if (uncommitted = `git diff HEAD --name-only`.split("\n")).any?
+      raise "ERROR: Uncommitted file exists. stash or commit uncommitted files.\n#{uncommitted}"
+    end
+
+    if from == to
+      raise "ERROR: target(#{from}) and source(#{to}) branch can't be equal."
+    end
+
+    nil
+  end
 
   # @param [String] name
   # @return [String] hash
