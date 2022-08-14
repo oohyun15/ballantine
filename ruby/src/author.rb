@@ -27,7 +27,7 @@ class Author
 
   # @return [NilClass] nil
   def print_commits
-    puts "\n@" + name.green
+    puts "\n" + "@#{name}".green
     @commits.each do |repo, lists|
       count, word = retrieve_count_and_word(lists)
       puts " > #{repo.blue}: #{count} new #{word}\n"
