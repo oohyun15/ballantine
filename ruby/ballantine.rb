@@ -2,6 +2,7 @@
 
 require 'thor'
 require 'fileutils'
+require './src/author'
 class Ballantine < Thor
   FILE_GITMODULES = '.gitmodules'
 
