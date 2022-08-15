@@ -29,7 +29,7 @@ class Ballantine < Thor
 
   package_name 'Ballantine'
 
-  desc 'init', 'init ballantine configuration'
+  desc 'init', 'initialize ballantine configuration'
   def init
     puts "🥃 Init ballantine configuration"
     slack_webhook = ask("Q. Set slack webhook (optional)\n> ")
