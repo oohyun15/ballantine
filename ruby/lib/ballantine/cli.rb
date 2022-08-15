@@ -33,7 +33,7 @@ module Ballantine
     desc 'init', 'Initialize ballantine configuration'
     def init
       puts "🥃 Init ballantine configuration"
-      slack_webhook = ask("Q. Set slack webhook (optional)\n> ")
+      slack_webhook = ask("Q. Set slack webhook\n> ")
 
       config = {
         slack_webhook: slack_webhook
