@@ -27,10 +27,7 @@ class Ballantine < Thor
   desc 'diff', 'diff commits'
   option TYPE_SLACK, type: :boolean, aliases: '-s'
   def diff(from, to)
-    preprocess(from, to)
-
-    @send_type = options[TYPE_SLACK] ? TYPE_SLACK : TYPE_TERMINAL
-    @app_name = File.basename(`git config --get remote.origin.url`.chomp, '.git')
+    preprocess(from, to, **options)
 
     # check argument is tag
     from = check_tag(from)
@@ -39,7 +36,9 @@ class Ballantine < Thor
     # check commits are newest
     system 'git pull -f &> /dev/null'
 
-    # find main, sub path
+    # set instance variables
+    @send_type = options[TYPE_SLACK] ? TYPE_SLACK : TYPE_TERMINAL
+    @app_name = File.basename(`git config --get remote.origin.url`.chomp, '.git')
     @main_path = Dir.pwd
     @sub_path =
       if Dir[FILE_GITMODULES].any?
@@ -79,8 +78,9 @@ class Ballantine < Thor
 
   # @param [String] from
   # @param [String] to
+  # @param [Hash] options
   # @return [NilClass] nil
-  def preprocess(from, to)
+  def preprocess(from, to, **options)
     if Dir['.git'].empty?
       raise SystemCallError, "ERROR: There is no \".git\" in #{Dir.pwd}."
     end
@@ -90,7 +90,11 @@ class Ballantine < Thor
     end
 
     if from == to
-      raise ArgumentError, "ERROR: target(#{from}) and source(#{to}) branch can't be equal."
+      raise ArgumentError, "ERROR: target(#{from}) and source(#{to}) can't be equal."
+    end
+
+    if options[TYPE_SLACK]
+      raise ArgumentError, "ERROR: Can't find any slack webhook. Set slack webhook using `ballantine init`."
     end
 
     nil
