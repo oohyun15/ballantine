@@ -86,7 +86,7 @@ class Ballantine < Thor
     end
 
     if (uncommitted = `git diff HEAD --name-only`.split("\n")).any?
-      raise SystemCallError, "ERROR: Uncommitted file exists. stash or commit uncommitted files.\n#{uncommitted}"
+      raise SystemCallError, "ERROR: Uncommitted file exists. stash or commit uncommitted files.\n#{uncommitted.join("\n")}"
     end
 
     if from == to
