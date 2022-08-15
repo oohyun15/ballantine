@@ -41,7 +41,7 @@ class Ballantine < Thor
   end
 
   desc 'diff [TARGET] [SOURCE]', 'diff commits between TARGET and SOURCE'
-  option TYPE_SLACK, type: :boolean, aliases: '-s', default: false
+  option TYPE_SLACK, type: :boolean, aliases: '-s', default: false, desc: 'send to slack using slack webhook URL.'
   def diff(from, to = `git rev-parse --abbrev-ref HEAD`.chomp)
     load_config
     preprocess(from, to, **options)
