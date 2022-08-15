@@ -24,6 +24,8 @@ module Ballantine
     TYPE_TERMINAL = 'terminal'
     TYPE_SLACK = 'slack'
 
+    DEFAULT_LJUST = 80
+
     AVAILABLE_CONFIG = ['slack_webhook'].freeze
 
     attr_reader :app_name, :main_path, :sub_path, :slack_webhook, :send_type
@@ -163,7 +165,7 @@ module Ballantine
       names = `git --no-pager log --pretty=format:"%an" #{from}..#{to}`.split("\n").uniq.sort
       authors = names.map{ |name| Author.find_or_create_by(name) }
       authors.each do |author|
-        format = commit_format(url)
+        format = commit_format(url, ljust: DEFAULT_LJUST - 10)
         commits = `git --no-pager log --reverse --no-merges --author="#{author.name}" --format="#{format}" --abbrev=7 #{from}..#{to}`.gsub('"', '\"').gsub(/[\u0080-\u00ff]/, '')
         next if commits.empty?
         author.commits[repo] = commits.split("\n")
@@ -201,10 +203,11 @@ module Ballantine
 
     # @param [String] url
     # @param [String] format
-    def commit_format(url)
+    # @param [Integer] ljust
+    def commit_format(url, ljust: DEFAULT_LJUST)
       case @send_type
       when TYPE_TERMINAL
-        " - "+ "%h".yellow + " %s " + "#{url}/commit/%H".gray
+        " - "+ "%h".yellow + " %<(#{ljust})%s " + "#{url}/commit/%H".gray
       when TYPE_SLACK
         "\\\`<#{url}/commit/%H|%h>\\\` %s - %an"
       end
@@ -220,11 +223,11 @@ module Ballantine
         raise ArgumentError, "ERROR: There is no commits between \"#{from}\" and \"#{to}\""
       end
       number = authors.size
-      last_commit = `git --no-pager log --reverse --format="#{commit_format(url)}" --abbrev=7 #{from}..#{to} -1`.strip
+      last_commit = `git --no-pager log --reverse --format="#{commit_format(url, ljust: DEFAULT_LJUST - 22)}" --abbrev=7 #{from}..#{to} -1`.strip
 
       case @send_type
       when TYPE_TERMINAL
-        puts "Check commits before #{@app_name.red} deployment. (#{from.cyan} <- #{to.cyan}) " + "#{url}/compare/#{from}...#{to}".gray
+        puts "Check commits before #{@app_name.red} deployment. (#{from.cyan} <- #{to.cyan})".ljust(DEFAULT_LJUST + 34) + " #{url}/compare/#{from}...#{to}".gray
         puts "Author".yellow + ": #{number}"
         puts "Last commit".blue + ": #{last_commit}"
         authors.map(&:print_commits)
