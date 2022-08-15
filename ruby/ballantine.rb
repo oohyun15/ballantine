@@ -23,6 +23,8 @@ class Ballantine < Thor
   TYPE_TERMINAL = 'terminal'
   TYPE_SLACK = 'slack'
 
+  attr_reader :app_name, :main_path, :sub_path, :slack_webhook, :send_type
+
   package_name 'Ballantine'
 
   desc 'init', 'init ballantine configuration'
@@ -114,7 +116,7 @@ class Ballantine < Thor
       raise ArgumentError, "ERROR: target(#{from}) and source(#{to}) can't be equal."
     end
 
-    if options[TYPE_SLACK]
+    if options[TYPE_SLACK] && !@slack_webhook
       raise ArgumentError, "ERROR: Can't find any slack webhook. Set slack webhook using `ballantine init`."
     end
 
