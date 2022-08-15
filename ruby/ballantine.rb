@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'thor'
+require 'json'
 require_relative 'src/author'
 require_relative 'lib/string'
 
@@ -24,8 +25,21 @@ class Ballantine < Thor
 
   package_name 'Ballantine'
 
-  desc 'diff', 'diff commits'
-  option TYPE_SLACK, type: :boolean, aliases: '-s'
+  desc 'init', 'init ballantine configuration'
+  def init
+    puts "🥃 Init ballantine configuration"
+    target = ask("Q. Set default target branch (ex. production)\n> ")
+    webhook = ask("Q. Set slack webhook (optional)\n> ")
+
+    config = {
+      target: target,
+      webhook: webhook
+    }
+    File.write('./.ballantine.json', JSON.dump(config))
+  end
+
+  desc 'diff [TARGET] [SOURCE]', 'diff commits between TARGET and SOURCE'
+  option TYPE_SLACK, type: :boolean, aliases: '-s', default: false
   def diff(from, to)
     preprocess(from, to, **options)
 
@@ -192,7 +206,6 @@ class Ballantine < Thor
       # send message to slack
       require 'net/http'
       require 'uri'
-      require 'json'
       uri = URI.parse(ENV['BLNT_WEBHOOK'])
       request = Net::HTTP::Post.new(uri)
       request.content_type = 'application/json'
