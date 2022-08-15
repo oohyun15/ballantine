@@ -40,11 +40,10 @@ class Author
   # reference: https://api.slack.com/messaging/composing/layouts#building-attachments
   # @return [Hash] result
   def serialize_commits
-    message =
-      @commits.map do |repo, lists|
-        count, word = retrieve_count_and_word(lists)
-        "*#{repo}*: #{count} new #{word}\n#{lists.join("\n")}"
-      end.join("\n")
+    message = @commits.map do |repo, lists|
+      count, word = retrieve_count_and_word(lists)
+      "*#{repo}*: #{count} new #{word}\n#{lists.join("\n")}"
+    end.join("\n")
 
     results = {
       'text' => "- <@#{name}>\n#{message}",

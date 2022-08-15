@@ -68,15 +68,14 @@ module Ballantine
       @send_type = options[TYPE_SLACK] ? TYPE_SLACK : TYPE_TERMINAL
       @app_name = File.basename(`git config --get remote.origin.url`.chomp, '.git')
       @main_path = Dir.pwd
-      @sub_path =
-        if Dir[FILE_GITMODULES].any?
-          file = File.open(FILE_GITMODULES)
-          lines = file.readlines.map(&:chomp)
-          file.close
-          lines.grep(/path =/).map{ |line| line[/(?<=path \=).*/, 0].strip }.sort
-        else
-          []
-        end
+      @sub_path = if Dir[FILE_GITMODULES].any?
+        file = File.open(FILE_GITMODULES)
+        lines = file.readlines.map(&:chomp)
+        file.close
+        lines.grep(/path =/).map{ |line| line[/(?<=path \=).*/, 0].strip }.sort
+      else
+        []
+      end
 
       # find github url, branch
       main_url = github_url(`git config --get remote.origin.url`.chomp)
@@ -176,12 +175,12 @@ module Ballantine
     # @param [String] url
     # @return [String] github_url
     def github_url(url)
-      owner, repository =
-        GITHUB_REGEXES.each do |regex|
-          if (str = url.match(regex))
-            break [str[2], str[3]]
-          end
+      owner, repository = GITHUB_REGEXES.each do |regex|
+        if (str = url.match(regex))
+          break [str[2], str[3]]
         end
+      end
+
       "https://github.com/#{owner}/#{repository}"
     end
 
@@ -192,12 +191,12 @@ module Ballantine
       system "git checkout #{hash} -f &> /dev/null"
       system 'git pull &> /dev/null'
       main_hash = `git --no-pager log -1 --format='%h'`.chomp
-      sub_hash =
-        if @sub_path.any?
-          `git ls-tree HEAD #{@sub_path.join(' ')}`.split("\n").map{ |line| line.split(' ')[2] }
-        else
-          []
-        end
+      sub_hash = if @sub_path.any?
+        `git ls-tree HEAD #{@sub_path.join(' ')}`.split("\n").map{ |line| line.split(' ')[2] }
+      else
+        []
+      end
+
       [main_hash, sub_hash]
     end
 
