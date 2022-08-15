@@ -23,6 +23,8 @@ class Ballantine < Thor
   TYPE_TERMINAL = 'terminal'
   TYPE_SLACK = 'slack'
 
+  AVAILABLE_CONFIG = ['slack_webhook'].freeze
+
   attr_reader :app_name, :main_path, :sub_path, :slack_webhook, :send_type
 
   package_name 'Ballantine'
@@ -95,6 +97,7 @@ class Ballantine < Thor
     return if Dir[FILE_BALLANTINE_CONFIG].empty?
 
     JSON.parse(File.read('./' + FILE_BALLANTINE_CONFIG)).each do |key, value|
+      next unless AVAILABLE_CONFIG.include?(key)
       instance_variable_set('@' + key, value)
     end
   end
