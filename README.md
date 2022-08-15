@@ -1,18 +1,19 @@
 # ballantine
+
 **Ballantine** helps you describe your commits easier and prettier from cli & slack.
 
 ![example](https://user-images.githubusercontent.com/52606560/162619226-7275122c-ca55-4cab-b270-552e23149d4c.gif)
 
 or print commits to slack channel using slack option.
-```bash
-ballantine diff production beta1 -s
-```
 
 ![image](https://user-images.githubusercontent.com/52606560/180467424-de1e4efd-7016-472e-b376-b6341cf78ab6.png)
 
 # Getting Started
 
 ## install
+
+- Homebrew
+
 ```bash
 # add brew repository
 $ brew tap oohyun15/ballantine
@@ -21,13 +22,22 @@ $ brew tap oohyun15/ballantine
 $ brew install ballantine
 ```
 
+- RubyGems
+
+```bash
+# install ballantine
+$ gem install ballantine
+```
+
 ## init
+
 ```bash
 # intialize ballantine configuration
 $ ballantine init
 ```
 
 ## how to use
+
 ```bash
 # return ballantine command lines
 $ ballantine
@@ -46,7 +56,17 @@ $ ballantine config
 ```
 
 ## update
+
+- Homebrew
+
 ```bash
 # update ballantine
 $ brew upgrade ballantine
+```
+
+- RubyGems
+
+```bash
+# update ballantine
+$ gem update ballantine
 ```
