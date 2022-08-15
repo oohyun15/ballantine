@@ -2,7 +2,7 @@
 
 require 'thor'
 require 'json'
-require_relative 'src/author'
+require_relative 'lib/author'
 require_relative 'lib/string'
 
 class Ballantine < Thor

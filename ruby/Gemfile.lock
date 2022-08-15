@@ -1,0 +1,25 @@
+PATH
+  remote: .
+  specs:
+    ballantine (0.1.0)
+      thor
+
+GEM
+  remote: https://rubygems.org/
+  specs:
+    rake (13.0.6)
+    thor (1.2.1)
+    webrick (1.7.0)
+    yard (0.9.28)
+      webrick (~> 1.7.0)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  ballantine!
+  rake (~> 13.0)
+  yard
+
+BUNDLED WITH
+   2.3.20
