@@ -25,14 +25,11 @@ class Ballantine < Thor
   package_name 'Ballantine'
 
   desc 'diff', 'diff commits'
-  method_option :type, aliases: '-t', default: TYPE_TERMINAL, enum: AVAILABLE_TYPES
-  # @param [String] from
-  # @param [String] to
-  # @return [Integer] exit code
+  option TYPE_SLACK, type: :boolean, aliases: '-s'
   def diff(from, to)
     preprocess(from, to)
 
-    @_options = options
+    @send_type = options[TYPE_SLACK] ? TYPE_SLACK : TYPE_TERMINAL
     @app_name = File.basename(`git config --get remote.origin.url`.chomp, '.git')
 
     # check argument is tag
@@ -157,7 +154,7 @@ class Ballantine < Thor
   # @param [String] url
   # @param [String] format
   def commit_format(url)
-    case @_options[:type]
+    case @send_type
     when TYPE_TERMINAL
       " - "+ "%h".yellow + " %s " + "#{url}/commit/%H".gray
     when TYPE_SLACK
@@ -177,7 +174,7 @@ class Ballantine < Thor
     number = authors.size
     last_commit = `git --no-pager log --reverse --format="#{commit_format(url)}" --abbrev=7 #{from}..#{to} -1`.strip
 
-    case @_options[:type]
+    case @send_type
     when TYPE_TERMINAL
       puts "Check commits before #{@app_name.red} deployment. (#{from.cyan} <- #{to.cyan}) " + "#{url}/compare/#{from}...#{to}".gray
       puts "Author".yellow + ": #{number}"
