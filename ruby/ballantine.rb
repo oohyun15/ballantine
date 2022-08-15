@@ -28,19 +28,21 @@ class Ballantine < Thor
   desc 'init', 'init ballantine configuration'
   def init
     puts "🥃 Init ballantine configuration"
-    target = ask("Q. Set default target branch (ex. production)\n> ")
-    webhook = ask("Q. Set slack webhook (optional)\n> ")
+    default_target = ask("Q. Set default target (ex. production)\n> ")
+    slack_webhook = ask("Q. Set slack webhook (optional)\n> ")
 
     config = {
-      target: target,
-      webhook: webhook
+      default_target: default_target,
+      slack_webhook: slack_webhook
     }
     File.write('./.ballantine.json', JSON.dump(config))
   end
 
   desc 'diff [TARGET] [SOURCE]', 'diff commits between TARGET and SOURCE'
   option TYPE_SLACK, type: :boolean, aliases: '-s', default: false
-  def diff(from, to)
+  def diff(from, to = `git rev-parse --abbrev-ref HEAD`)
+    load_config
+
     preprocess(from, to, **options)
 
     # check argument is tag
