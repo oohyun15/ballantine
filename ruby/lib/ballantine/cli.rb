@@ -100,6 +100,11 @@ module Ballantine
       exit 0
     end
 
+    desc 'version', 'Display version information about ballntine'
+    def version
+      puts "ballantine version #{Ballantine::VERSION}"
+    end
+
     private
 
     def self.exit_on_failure?
