@@ -101,6 +101,10 @@ class Ballantine < Thor
 
   private
 
+  def self.exit_on_failure?
+    exit 1
+  end
+
   def load_config
     return if Dir[FILE_BALLANTINE_CONFIG].empty?
 
