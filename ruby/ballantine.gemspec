@@ -13,8 +13,8 @@ Gem::Specification.new do |spec|
   spec.homepage = "https://github.com/oohyun15/ballantine"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 2.7.6"
-  spec.add_dependency "thor"
-  spec.add_development_dependency "yard"
+  spec.add_dependency "thor", "~> 1.2.1"
+  spec.add_development_dependency "yard", "~> 0.9.28"
 
   spec.files = Dir["lib/*"]
   spec.executables = ["ballantine"]
