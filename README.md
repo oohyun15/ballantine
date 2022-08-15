@@ -5,7 +5,7 @@
 
 or print commits to slack channel using slack option.
 ```bash
-ballantine -s production beta1
+ballantine diff production beta1 -s
 ```
 
 ![image](https://user-images.githubusercontent.com/52606560/180467424-de1e4efd-7016-472e-b376-b6341cf78ab6.png)
@@ -29,17 +29,20 @@ $ ballantine init
 
 ## how to use
 ```bash
-# return commits between `target_branch` and `current_branch`
+# return ballantine command lines
 $ ballantine
 
 # return commits between production and feature/task-1 branch
-$ ballantine production feature/task-1
+$ ballantine diff production feature/task-1
 
 # reutrn commits between defaf88 and a39aa43 commits
-$ ballantine defaf88 a39aa43
+$ ballantine diff defaf88 a39aa43
 
 # return commits to slack between production and beta
-$ ballantine -s production beta
+$ ballantine diff production beta -s
+
+# return ballantine configuration
+$ ballantine config
 ```
 
 ## update
