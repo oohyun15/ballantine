@@ -40,9 +40,7 @@ class Ballantine < Thor
 
   desc 'diff [TARGET] [SOURCE]', 'diff commits between TARGET and SOURCE'
   option TYPE_SLACK, type: :boolean, aliases: '-s', default: false
-  def diff(from, to = `git rev-parse --abbrev-ref HEAD`)
-    load_config
-
+  def diff(from, to = `git rev-parse --abbrev-ref HEAD`.chomp)
     preprocess(from, to, **options)
 
     # check argument is tag
@@ -198,7 +196,7 @@ class Ballantine < Thor
     when TYPE_TERMINAL
       puts "Check commits before #{@app_name.red} deployment. (#{from.cyan} <- #{to.cyan}) " + "#{url}/compare/#{from}...#{to}".gray
       puts "Author".yellow + ": #{number}"
-      puts "Last Commit".blue + ": #{last_commit}"
+      puts "Last commit".blue + ": #{last_commit}"
       authors.map(&:print_commits)
     when TYPE_SLACK
       # set message for each author
