@@ -6,8 +6,6 @@ require_relative 'src/author'
 require_relative 'lib/string'
 
 class Ballantine < Thor
-  FILE_GITMODULES = '.gitmodules'
-
   # reference: https://github.com/desktop/desktop/blob/a7bca44088b105a04714dc4628f4af50f6f179c3/app/src/lib/remote-parsing.ts#L27-L44
   GITHUB_REGEXES = [
     '^https?://(.+)/(.+)/(.+)\.git/?$', # protocol: https -> https://github.com/oohyun15/ballantine.git | https://github.com/oohyun15/ballantine.git/
@@ -19,28 +17,29 @@ class Ballantine < Thor
     '^ssh://git@(.+)/(.+)/(.+)\.git$',  # protocol: ssh   -> ssh://git@github.com/oohyun15/ballantine.git
   ].freeze
 
+  FILE_GITMODULES = '.gitmodules'
+  FILE_BALLANTINE_CONFIG = '.ballantine.json'
+
   TYPE_TERMINAL = 'terminal'
   TYPE_SLACK = 'slack'
-  AVAILABLE_TYPES = [TYPE_TERMINAL, TYPE_SLACK].freeze
 
   package_name 'Ballantine'
 
   desc 'init', 'init ballantine configuration'
   def init
     puts "🥃 Init ballantine configuration"
-    default_target = ask("Q. Set default target (ex. production)\n> ")
     slack_webhook = ask("Q. Set slack webhook (optional)\n> ")
 
     config = {
-      default_target: default_target,
       slack_webhook: slack_webhook
     }
-    File.write('./.ballantine.json', JSON.dump(config))
+    File.write('./' + FILE_BALLANTINE_CONFIG, JSON.dump(config))
   end
 
   desc 'diff [TARGET] [SOURCE]', 'diff commits between TARGET and SOURCE'
   option TYPE_SLACK, type: :boolean, aliases: '-s', default: false
   def diff(from, to = `git rev-parse --abbrev-ref HEAD`.chomp)
+    load_config
     preprocess(from, to, **options)
 
     # check argument is tag
@@ -89,6 +88,14 @@ class Ballantine < Thor
   end
 
   private
+
+  def load_config
+    return if Dir[FILE_BALLANTINE_CONFIG].empty?
+
+    JSON.parse(File.read('./' + FILE_BALLANTINE_CONFIG)).each do |key, value|
+      instance_variable_set('@' + key, value)
+    end
+  end
 
   # @param [String] from
   # @param [String] to
@@ -206,7 +213,7 @@ class Ballantine < Thor
       # send message to slack
       require 'net/http'
       require 'uri'
-      uri = URI.parse(ENV['BLNT_WEBHOOK'])
+      uri = URI.parse(@slack_webhook)
       request = Net::HTTP::Post.new(uri)
       request.content_type = 'application/json'
       request.body = JSON.dump({
