@@ -10,6 +10,7 @@ require_relative "ballantine/cli"
 module Ballantine
   class Error < StandardError; end
   class NotAllowed < Error; end
+  class InvalidParameter < Error; end
   class AssertionFailed < Error; end
   class NotImplemented < Error; end
 end
