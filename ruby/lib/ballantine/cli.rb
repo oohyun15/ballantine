@@ -3,8 +3,6 @@
 module Ballantine
   require 'thor'
   require 'json'
-  require_relative './author'
-  require_relative './string'
 
   class CLI < Thor
     # reference: https://github.com/desktop/desktop/blob/a7bca44088b105a04714dc4628f4af50f6f179c3/app/src/lib/remote-parsing.ts#L27-L44
