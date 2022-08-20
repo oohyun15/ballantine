@@ -21,23 +21,36 @@ module Ballantine
     def initialize(env = ENV_LOCAL)
       @env = env
       @data = {}
-      @loaded = false
+      load_file
     end
 
+    # @param [String] key
     # @return [nil]
-    def print_data
-      load_conf unless @loaded
-
-      @data.each do |key, value|
-        puts "#{key}: #{value}"
+    def print_data(key)
+      if key
+        puts @data[key]
+      else
+        @data.each do |key, value|
+          puts "#{key}: #{value}"
+        end
       end
 
       nil
     end
 
+    # @param [String] key
+    # @param [String] value
+    # @return [Stirng] value
+    def set_data(key, value)
+      @data[key] = value
+      File.write(file_path, JSON.dump(@data))
+      value
+    end
+
     private
 
-    def load_conf
+    # @return [Boolean] result
+    def load_file
       return false if @loaded
       raise NotAllowed, "Could not find #{FILE_BALLANTINE_CONFIG}" if Dir[file_path].empty?
 
