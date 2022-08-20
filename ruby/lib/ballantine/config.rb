@@ -18,8 +18,8 @@ module Ballantine
 
     attr_reader :env, :data, :loaded
 
-    def initialize(env = ENV_LOCAL)
-      @env = env
+    def initialize(env)
+      @env = env || ENV_LOCAL
       @data = {}
       @loaded = false
     end
@@ -54,7 +54,7 @@ module Ballantine
       load_file unless @loaded
 
       if key
-        raise InvalidParameter, "Key must be within #{AVAILABLE_KEYS.join(", ")}" unless AVAILABLE_KEYS.include?(key)
+        raise InvalidParameter, "Key must be within #{AVAILABLE_KEYS}" unless AVAILABLE_KEYS.include?(key)
         puts @data[key]
       else
         @data.each do |key, value|
@@ -79,11 +79,11 @@ module Ballantine
 
     private
 
-    def file_path
-      case @env
+    def file_path(env = @env)
+      case env
       when ENV_LOCAL then "./#{FILE_BALLANTINE_CONFIG}"
       when ENV_GLOBAL then "#{Dir.home}/#{FILE_BALLANTINE_CONFIG}"
-      else raise AssertionFailed, "Unknown environment: #{@env}"
+      else raise AssertionFailed, "Unknown environment: #{env}"
       end
     end
   end
