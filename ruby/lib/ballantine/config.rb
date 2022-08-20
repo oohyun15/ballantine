@@ -21,36 +21,21 @@ module Ballantine
     def initialize(env = ENV_LOCAL)
       @env = env
       @data = {}
-      load_file
+      @loaded = false
     end
 
-    # @param [String] key
-    # @return [nil]
-    def print_data(key)
-      if key
-        puts @data[key]
-      else
-        @data.each do |key, value|
-          puts "#{key}: #{value}"
-        end
-      end
-
-      nil
-    end
-
-    # @param [String] key
-    # @param [String] value
-    # @return [Stirng] value
-    def set_data(key, value)
-      @data[key] = value
-      File.write(file_path, JSON.dump(@data))
-      value
-    end
-
-    private
-
+    # @param [Hash] options
     # @return [Boolean] result
-    def load_file
+    def init_file(**options)
+      raise NotAllowed "#{FILE_BALLANTINE_CONFIG} already exists.", if Dir[file_path].any? && !options[:force]
+
+      File.write(file_path, nil)
+      @loaded = false
+    end
+
+    # @param [Hash] options
+    # @return [Boolean] result
+    def load_file(**options)
       return false if @loaded
       raise NotAllowed, "Could not find #{FILE_BALLANTINE_CONFIG}" if Dir[file_path].empty?
 
@@ -61,6 +46,37 @@ module Ballantine
 
       @loaded = true
     end
+
+    # @param [String] key
+    # @param [Hash] options
+    # @return [Boolean] result
+    def print_data(key, **options)
+      load_file unless @loaded
+
+      if key
+        puts @data[key]
+      else
+        @data.each do |key, value|
+          puts "#{key}: #{value}"
+        end
+      end
+
+      true
+    end
+
+    # @param [String] key
+    # @param [String] value
+    # @param [Hash] options
+    # @return [Stirng] value
+    def set_data(key, value, **options)
+      load_file unless @loaded
+
+      @data[key] = value
+      File.write(file_path, JSON.dump(@data))
+      value
+    end
+
+    private
 
     def file_path
       case @env
