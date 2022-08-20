@@ -1,8 +1,8 @@
 PATH
   remote: .
   specs:
-    ballantine (0.1.0)
-      thor
+    ballantine (0.1.2)
+      thor (~> 1.2.1)
 
 GEM
   remote: https://rubygems.org/
@@ -19,7 +19,7 @@ PLATFORMS
 DEPENDENCIES
   ballantine!
   rake (~> 13.0)
-  yard
+  yard (~> 0.9.28)
 
 BUNDLED WITH
    2.3.20
