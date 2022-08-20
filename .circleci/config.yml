@@ -15,4 +15,8 @@ jobs:
             cd ..
       - run:
           name: Run ballantine
-          command: ballantine
+          command: |
+            ballantine
+            ballantine version
+            ballantine init
+            ballantine diff ca131ca main
