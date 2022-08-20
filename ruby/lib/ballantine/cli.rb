@@ -125,7 +125,7 @@ module Ballantine
       end
 
       if options[TYPE_SLACK] && !conf.data[Config::KEY_SLACK_WEBHOOK]
-        raise NotAllowed, "ERROR: Can't find any slack webhook. Set slack webhook using `ballantine init`."
+        raise NotAllowed, "ERROR: Can't find any slack webhook. Set slack webhook using `ballantine config --#{Config::ENV_LOCAL} slack_webhook [YOUR_WEBHOOK]'."
       end
 
       nil

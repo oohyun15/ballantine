@@ -37,7 +37,7 @@ module Ballantine
     # @return [Boolean] result
     def load_file(**options)
       return false if @loaded
-      raise NotAllowed, "Could not find #{FILE_BALLANTINE_CONFIG}" if Dir[file_path].empty?
+      raise NotAllowed, "Can't find #{FILE_BALLANTINE_CONFIG}" if Dir[file_path].empty?
 
       JSON.parse(File.read(file_path)).each do |key, value|
         next unless AVAILABLE_KEYS.include?(key)
