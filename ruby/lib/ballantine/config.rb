@@ -77,6 +77,14 @@ module Ballantine
       value
     end
 
+    # @param [String] key
+    # @param [Hash] options
+    # @return [Stirng] value
+    def get_data(key, **options)
+      load_file unless @loaded
+      @data[key]
+    end
+
     private
 
     def file_path(env = @env)

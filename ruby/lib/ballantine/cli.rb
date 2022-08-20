@@ -124,7 +124,7 @@ module Ballantine
         raise NotAllowed, "ERROR: target(#{from}) and source(#{to}) can't be equal."
       end
 
-      if options[TYPE_SLACK] && !conf.data[Config::KEY_SLACK_WEBHOOK]
+      if options[TYPE_SLACK] && !conf.get_data(Config::KEY_SLACK_WEBHOOK)
         raise NotAllowed, "ERROR: Can't find any slack webhook. Set slack webhook using `ballantine config --#{Config::ENV_LOCAL} slack_webhook [YOUR_WEBHOOK]'."
       end
 
@@ -225,7 +225,7 @@ module Ballantine
         # send message to slack
         require 'net/http'
         require 'uri'
-        uri = URI.parse(conf.data[Config::KEY_SLACK_WEBHOOK])
+        uri = URI.parse(conf.get_data(Config::KEY_SLACK_WEBHOOK))
         request = Net::HTTP::Post.new(uri)
         request.content_type = 'application/json'
         request.body = JSON.dump({
