@@ -23,6 +23,17 @@ class Config
     @loaded = false
   end
 
+  # @return [nil]
+  def print_data
+    load_conf unless @loaded
+
+    @data.each do |key, value|
+      puts "#{key}: #{value}"
+    end
+
+    nil
+  end
+
   private
 
   def load_conf

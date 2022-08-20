@@ -1,9 +1,6 @@
 #!/usr/bin/env ruby
 
 module Ballantine
-  require 'thor'
-  require 'json'
-
   class CLI < Thor
     # reference: https://github.com/desktop/desktop/blob/a7bca44088b105a04714dc4628f4af50f6f179c3/app/src/lib/remote-parsing.ts#L27-L44
     GITHUB_REGEXES = [
@@ -17,14 +14,11 @@ module Ballantine
     ].freeze
 
     FILE_GITMODULES = '.gitmodules'
-    FILE_BALLANTINE_CONFIG = '.ballantine.json'
 
     TYPE_TERMINAL = 'terminal'
     TYPE_SLACK = 'slack'
 
     DEFAULT_LJUST = 80
-
-    AVAILABLE_CONFIG = ['slack_webhook'].freeze
 
     attr_reader :app_name, :main_path, :sub_path, :slack_webhook, :send_type
 
@@ -34,25 +28,37 @@ module Ballantine
     def init
       puts "🥃 Init ballantine configuration"
       slack_webhook = ask("Q. Set slack webhook\n> ")
-
       config = {
         slack_webhook: slack_webhook
       }
       File.write('./' + FILE_BALLANTINE_CONFIG, JSON.dump(config))
     end
 
-    desc 'config', 'Describe ballantine configuration'
-    def config
-      load_config
-      AVAILABLE_CONFIG.each do |key|
-        puts "#{key}: #{instance_variable_get('@' + key)}"
+    Config::AVAILABLE_ENVIRONMENTS.each{ |env| option env, type: :boolean, default: false, desc: "Set envirment to `#{env}'." }
+    option 'show', type: :boolean, default: false, desc: "Show all ballantine's configuration."
+    desc 'config [--env] [KEY] [VALUE]', "Set ballantine's configuration"
+    def config(key = nil, value = nil)
+      # check environment value
+      if Config::AVAILABLE_ENVIRONMENTS.map{ |key| !options[key] }.reduce(:&)
+        raise NotAllowed, "Set environment value (#{Config::AVAILABLE_ENVIRONMENTS.map{ |key| "`--#{key}`" }.join(", ")})"
+      elsif Config::AVAILABLE_ENVIRONMENTS.map{ |key| !!options[key] }.reduce(:&)
+        raise NotAllowed, "Environment value must be unique."
       end
+      env = Config::AVAILABLE_ENVIRONMENTS.find{ |key| options[key] }
+      raise AssertionFailed, "Environment value must exist: #{env}" if env.nil?
+
+      conf = Config.new(env)
+
+      # option: show
+      return conf.print_data if options['show']
+
+      # set value to config
+      # conf.set_data(key, value)
     end
 
     desc 'diff [TARGET] [SOURCE]', 'Diff commits between TARGET and SOURCE'
-    option TYPE_SLACK, type: :boolean, aliases: '-s', default: false, desc: 'send to slack using slack webhook URL.'
+    option TYPE_SLACK, type: :boolean, aliases: '-s', default: false, desc: "Send to slack using slack webhook URL."
     def diff(from, to = `git rev-parse --abbrev-ref HEAD`.chomp)
-      load_config
       preprocess(from, to, **options)
 
       # check argument is tag
@@ -106,18 +112,7 @@ module Ballantine
 
     private
 
-    def self.exit_on_failure?
-      exit 1
-    end
-
-    def load_config
-      return if Dir[FILE_BALLANTINE_CONFIG].empty?
-
-      JSON.parse(File.read('./' + FILE_BALLANTINE_CONFIG)).each do |key, value|
-        next unless AVAILABLE_CONFIG.include?(key)
-        instance_variable_set('@' + key, value)
-      end
-    end
+    def self.exit_on_failure?; exit 1 end
 
     # @param [String] from
     # @param [String] to
@@ -125,19 +120,19 @@ module Ballantine
     # @return [NilClass] nil
     def preprocess(from, to, **options)
       if Dir['.git'].empty?
-        raise SystemCallError, "ERROR: There is no \".git\" in #{Dir.pwd}."
+        raise NotAllowed, "ERROR: There is no \".git\" in #{Dir.pwd}."
       end
 
       if (uncommitted = `git diff HEAD --name-only`.split("\n")).any?
-        raise SystemCallError, "ERROR: Uncommitted file exists. stash or commit uncommitted files.\n#{uncommitted.join("\n")}"
+        raise NotAllowed, "ERROR: Uncommitted file exists. stash or commit uncommitted files.\n#{uncommitted.join("\n")}"
       end
 
       if from == to
-        raise ArgumentError, "ERROR: target(#{from}) and source(#{to}) can't be equal."
+        raise NotAllowed, "ERROR: target(#{from}) and source(#{to}) can't be equal."
       end
 
       if options[TYPE_SLACK] && !@slack_webhook
-        raise ArgumentError, "ERROR: Can't find any slack webhook. Set slack webhook using `ballantine init`."
+        raise NotAllowed, "ERROR: Can't find any slack webhook. Set slack webhook using `ballantine init`."
       end
 
       nil
