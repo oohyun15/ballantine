@@ -5,10 +5,9 @@ jobs:
       - image: ruby:3.1.2
     steps:
       - checkout
-      - run: cd ruby
       - run:
-          name: Run the default task
+          name: Build ruby version & test
           command: |
+            cd ruby
             gem install bundler -v 2.3.20
             bundle install
-            bundle exec rake
