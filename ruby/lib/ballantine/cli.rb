@@ -20,22 +20,19 @@ module Ballantine
 
     DEFAULT_LJUST = 80
 
-    attr_reader :app_name, :main_path, :sub_path, :slack_webhook, :send_type
+    attr_reader :app_name, :main_path, :sub_path, :send_type
 
     package_name 'Ballantine'
 
-    desc 'init', 'Initialize ballantine configuration'
+    option 'force', type: :boolean, default: false, desc: "Initialize forcely if already initialized."
+    desc 'init', 'Initialize ballantine'
     def init
-      puts "🥃 Init ballantine configuration"
-      slack_webhook = ask("Q. Set slack webhook\n> ")
-      config = {
-        slack_webhook: slack_webhook
-      }
-      File.write('./' + FILE_BALLANTINE_CONFIG, JSON.dump(config))
+      conf.init_file(force: options['force'])
+
+      puts "🥃 Initialized ballantine."
     end
 
     Config::AVAILABLE_ENVIRONMENTS.each{ |env| option env, type: :boolean, default: false, desc: "Set envirment to `#{env}'." }
-    option 'show', type: :boolean, default: false, desc: "Show all ballantine's configuration."
     desc 'config [--env] [KEY] [VALUE]', "Set ballantine's configuration"
     def config(key = nil, value = nil)
       # check environment value
@@ -44,16 +41,10 @@ module Ballantine
       elsif Config::AVAILABLE_ENVIRONMENTS.map{ |key| !!options[key] }.reduce(:&)
         raise NotAllowed, "Environment value must be unique."
       end
-      env = Config::AVAILABLE_ENVIRONMENTS.find{ |key| options[key] }
-      raise AssertionFailed, "Environment value must exist: #{env}" if env.nil?
+      @env = Config::AVAILABLE_ENVIRONMENTS.find{ |key| options[key] }
+      raise AssertionFailed, "Environment value must exist: #{@env}" if @env.nil?
 
-      conf = Config.new(env)
-
-      # option: show
-      return conf.print_data if options['show']
-
-      # set value to config
-      # conf.set_data(key, value)
+      value ? conf.set_data(key, value) : conf.print_data(key)
     end
 
     desc 'diff [TARGET] [SOURCE]', 'Diff commits between TARGET and SOURCE'
@@ -114,6 +105,8 @@ module Ballantine
 
     def self.exit_on_failure?; exit 1 end
 
+    def conf; @conf ||= Config.new(@env) end
+
     # @param [String] from
     # @param [String] to
     # @param [Hash] options
@@ -131,7 +124,7 @@ module Ballantine
         raise NotAllowed, "ERROR: target(#{from}) and source(#{to}) can't be equal."
       end
 
-      if options[TYPE_SLACK] && !@slack_webhook
+      if options[TYPE_SLACK] && !conf.data[Config::KEY_SLACK_WEBHOOK]
         raise NotAllowed, "ERROR: Can't find any slack webhook. Set slack webhook using `ballantine init`."
       end
 
@@ -202,6 +195,7 @@ module Ballantine
         " - "+ "%h".yellow + " %<(#{ljust})%s " + "#{url}/commit/%H".gray
       when TYPE_SLACK
         "\\\`<#{url}/commit/%H|%h>\\\` %s - %an"
+      else raise AssertionFailed, "Unknown send type: #{@send_type}"
       end
     end
 
@@ -231,7 +225,7 @@ module Ballantine
         # send message to slack
         require 'net/http'
         require 'uri'
-        uri = URI.parse(@slack_webhook)
+        uri = URI.parse(conf.data[Config::KEY_SLACK_WEBHOOK])
         request = Net::HTTP::Post.new(uri)
         request.content_type = 'application/json'
         request.body = JSON.dump({
@@ -243,6 +237,8 @@ module Ballantine
           http.request(request)
         end
         puts response.message
+      else
+        raise AssertionFailed, "Unknown send type: #{@send_type}"
       end
     end
   end
