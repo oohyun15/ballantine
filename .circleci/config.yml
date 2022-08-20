@@ -6,8 +6,13 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Build ruby version & test
+          name: Build ruby version
           command: |
             cd ruby
             gem install bundler -v 2.3.20
-            bundle install
+            gem build ballantine.gemspec
+            gem install ballantine
+            cd ..
+      - run:
+          name: Run ballantine
+          command: ballantine
