@@ -1,58 +1,60 @@
 #!/usr/bin/env ruby
 
-class Config
-  ENV_LOCAL = 'local'
-  ENV_GLOBAL = 'global'
-  AVAILABLE_ENVIRONMENTS = [
-    ENV_LOCAL,
-    ENV_GLOBAL
-  ].freeze
+module Ballantine
+  class Config
+    ENV_LOCAL = 'local'
+    ENV_GLOBAL = 'global'
+    AVAILABLE_ENVIRONMENTS = [
+      ENV_LOCAL,
+      ENV_GLOBAL
+    ].freeze
 
-  KEY_SLACK_WEBHOOK = 'slack_webhook'
-  AVAILABLE_KEYS = [
-    KEY_SLACK_WEBHOOK
-  ].freeze
+    KEY_SLACK_WEBHOOK = 'slack_webhook'
+    AVAILABLE_KEYS = [
+      KEY_SLACK_WEBHOOK
+    ].freeze
 
-  FILE_BALLANTINE_CONFIG = '.ballantine.json'
+    FILE_BALLANTINE_CONFIG = '.ballantine.json'
 
-  attr_reader :env, :data, :loaded
+    attr_reader :env, :data, :loaded
 
-  def initialize(env = ENV_LOCAL)
-    @env = env
-    @data = {}
-    @loaded = false
-  end
-
-  # @return [nil]
-  def print_data
-    load_conf unless @loaded
-
-    @data.each do |key, value|
-      puts "#{key}: #{value}"
+    def initialize(env = ENV_LOCAL)
+      @env = env
+      @data = {}
+      @loaded = false
     end
 
-    nil
-  end
+    # @return [nil]
+    def print_data
+      load_conf unless @loaded
 
-  private
+      @data.each do |key, value|
+        puts "#{key}: #{value}"
+      end
 
-  def load_conf
-    return false if @loaded
-    raise NotAllowed, "Could not find #{FILE_BALLANTINE_CONFIG}" if Dir[file_path].empty?
-
-    JSON.parse(File.read(file_path)).each do |key, value|
-      next unless AVAILABLE_KEYS.include?(key)
-      @data[key] = value
+      nil
     end
 
-    @loaded = true
-  end
+    private
 
-  def file_path
-    case @env
-    when ENV_LOCAL then "./#{FILE_BALLANTINE_CONFIG}"
-    when ENV_GLOBAL then "#{Dir.home}/#{FILE_BALLANTINE_CONFIG}"
-    else raise AssertionFailed, "Unknown environment: #{@env}"
+    def load_conf
+      return false if @loaded
+      raise NotAllowed, "Could not find #{FILE_BALLANTINE_CONFIG}" if Dir[file_path].empty?
+
+      JSON.parse(File.read(file_path)).each do |key, value|
+        next unless AVAILABLE_KEYS.include?(key)
+        @data[key] = value
+      end
+
+      @loaded = true
+    end
+
+    def file_path
+      case @env
+      when ENV_LOCAL then "./#{FILE_BALLANTINE_CONFIG}"
+      when ENV_GLOBAL then "#{Dir.home}/#{FILE_BALLANTINE_CONFIG}"
+      else raise AssertionFailed, "Unknown environment: #{@env}"
+      end
     end
   end
 end
