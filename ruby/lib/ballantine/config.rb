@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-class Conf
+class Config
   ENV_LOCAL = 'local'
   ENV_GLOBAL = 'global'
   AVAILABLE_ENVIRONMENTS = [
@@ -21,7 +21,6 @@ class Conf
     @env = env
     @data = {}
     @loaded = false
-    load_conf
   end
 
   private
