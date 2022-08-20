@@ -54,6 +54,7 @@ module Ballantine
       load_file unless @loaded
 
       if key
+        raise InvalidParameter, "Key must be within #{AVAILABLE_KEYS.join(", ")}" unless AVAILABLE_KEYS.include?(key)
         puts @data[key]
       else
         @data.each do |key, value|
