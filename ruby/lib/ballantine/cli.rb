@@ -24,7 +24,7 @@ module Ballantine
 
     package_name 'Ballantine'
 
-    option 'force', type: :boolean, default: false, desc: "Initialize forcely if already initialized."
+    option 'force', type: :boolean, aliases: '-f', default: false, desc: "Initialize forcely if already initialized."
     desc 'init', 'Initialize ballantine'
     def init
       conf.init_file(force: options['force'])
