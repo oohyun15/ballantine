@@ -19,4 +19,4 @@ jobs:
             ballantine
             ballantine version
             ballantine init
-            ballantine diff ca131ca main
+            ballantine diff migration/ruby main
