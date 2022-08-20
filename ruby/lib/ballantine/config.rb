@@ -29,7 +29,7 @@ module Ballantine
     def init_file(**options)
       raise NotAllowed, "#{FILE_BALLANTINE_CONFIG} already exists." if Dir[file_path].any? && !options[:force]
 
-      File.write(file_path, nil)
+      File.write(file_path, {})
       @loaded = false
     end
 
