@@ -38,7 +38,7 @@ class Config
 
   def load_conf
     return false if @loaded
-    return false if Dir[file_path].empty?
+    raise NotAllowed, "Could not find #{FILE_BALLANTINE_CONFIG}" if Dir[file_path].empty?
 
     JSON.parse(File.read(file_path)).each do |key, value|
       next unless AVAILABLE_KEYS.include?(key)
