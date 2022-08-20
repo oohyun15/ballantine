@@ -40,7 +40,7 @@ module Ballantine
     def config(key = nil, value = nil)
       # check environment value
       if Config::AVAILABLE_ENVIRONMENTS.map{ |key| !options[key] }.reduce(:&)
-        raise NotAllowed, "Set environment value (#{Config::AVAILABLE_ENVIRONMENTS.map{ |key| "`--#{key}`" }.join(", ")})"
+        raise NotAllowed, "Set environment value (#{Config::AVAILABLE_ENVIRONMENTS.map{ |key| "`--#{key}'" }.join(", ")})"
       elsif Config::AVAILABLE_ENVIRONMENTS.map{ |key| !!options[key] }.reduce(:&)
         raise NotAllowed, "Environment value must be unique."
       end
