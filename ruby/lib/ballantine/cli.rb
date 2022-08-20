@@ -242,7 +242,7 @@ module Ballantine
         request = Net::HTTP::Post.new(uri)
         request.content_type = 'application/json'
         request.body = JSON.dump({
-          'text' => ":check: *#{@app_name}* deployment request by <@#{actor}> (\`<#{url}/tree/#{from}|#{from}>\` <- \`<#{url}/tree/#{to}|#{to}>\` <#{url}/compare/#{from}...#{to}|compare>)\n:technologist: Author: #{number}\nLast commit: #{last_commit}",
+          'text' => ":white_check_mark: *#{@app_name}* deployment request by <@#{actor}> (\`<#{url}/tree/#{from}|#{from}>\` <- \`<#{url}/tree/#{to}|#{to}>\` <#{url}/compare/#{from}...#{to}|compare>)\n:technologist: Author: #{number}\nLast commit: #{last_commit}",
           'attachments' => messages
         })
         req_options = { use_ssl: uri.scheme == 'https' }
