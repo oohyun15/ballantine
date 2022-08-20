@@ -5,6 +5,7 @@ jobs:
       - image: ruby:3.1.2
     steps:
       - checkout
+      - run: cd ruby
       - run:
           name: Run the default task
           command: |
