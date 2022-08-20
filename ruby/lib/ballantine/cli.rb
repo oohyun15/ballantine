@@ -233,7 +233,7 @@ module Ballantine
       when TYPE_SLACK
         # set message for each author
         messages = authors.map(&:serialize_commits)
-        actor = `git config user.name`
+        actor = `git config user.name`.chomp
 
         # send message to slack
         require 'net/http'
