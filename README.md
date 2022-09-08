@@ -2,7 +2,8 @@
 
 **Ballantine** helps you describe your commits easier and prettier from cli & slack.
 
-![example](https://user-images.githubusercontent.com/52606560/162619226-7275122c-ca55-4cab-b270-552e23149d4c.gif)
+![image](https://user-images.githubusercontent.com/52606560/189166573-d2f219e3-e9a0-4532-a4ea-7bee40f5e8e8.png)
+
 
 or print commits to slack channel using slack option.
 
