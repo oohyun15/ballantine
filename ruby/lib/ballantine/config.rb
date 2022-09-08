@@ -1,20 +1,20 @@
-#!/usr/bin/env ruby
+# frozen_string_literal: true
 
 module Ballantine
   class Config
-    ENV_LOCAL = 'local'
-    ENV_GLOBAL = 'global'
+    ENV_LOCAL = "local"
+    ENV_GLOBAL = "global"
     AVAILABLE_ENVIRONMENTS = [
       ENV_LOCAL,
-      ENV_GLOBAL
+      ENV_GLOBAL,
     ].freeze
 
-    KEY_SLACK_WEBHOOK = 'slack_webhook'
+    KEY_SLACK_WEBHOOK = "slack_webhook"
     AVAILABLE_KEYS = [
-      KEY_SLACK_WEBHOOK
+      KEY_SLACK_WEBHOOK,
     ].freeze
 
-    FILE_BALLANTINE_CONFIG = '.ballantine.json'
+    FILE_BALLANTINE_CONFIG = ".ballantine.json"
 
     attr_reader :env, :data, :loaded
 
@@ -41,6 +41,7 @@ module Ballantine
 
       JSON.parse(File.read(file_path)).each do |key, value|
         next unless AVAILABLE_KEYS.include?(key)
+
         @data[key] = value
       end
 
@@ -55,6 +56,7 @@ module Ballantine
 
       if key
         raise InvalidParameter, "Key must be within #{AVAILABLE_KEYS}" unless AVAILABLE_KEYS.include?(key)
+
         puts @data[key]
       else
         @data.each do |key, value|
