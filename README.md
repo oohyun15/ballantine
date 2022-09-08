@@ -4,14 +4,13 @@
 
 ![image](https://user-images.githubusercontent.com/52606560/189166573-d2f219e3-e9a0-4532-a4ea-7bee40f5e8e8.png)
 
-
 or print commits to slack channel using slack option.
 
 ![image](https://user-images.githubusercontent.com/52606560/180467424-de1e4efd-7016-472e-b376-b6341cf78ab6.png)
 
-# Getting Started
+## Getting Started
 
-## install
+### install
 
 - Homebrew
 
@@ -30,14 +29,14 @@ $ brew install ballantine
 $ gem install ballantine
 ```
 
-## init
+### init
 
 ```bash
 # intialize ballantine configuration
 $ ballantine init
 ```
 
-## how to use
+### how to use
 
 ```bash
 # return ballantine command lines
@@ -56,7 +55,7 @@ $ ballantine diff production beta -s
 $ ballantine config
 ```
 
-## update
+### update
 
 - Homebrew
 
