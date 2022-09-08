@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+# frozen_string_literal: true
 
 module Ballantine
   class Author
@@ -8,15 +8,17 @@ module Ballantine
       # @param [String] name
       # @return [Author] author
       def find_or_create_by(name)
-        @@_collections = {} unless defined?(@@_collections)
-        return @@_collections[name] unless @@_collections[name].nil?
-        @@_collections[name] = new(name)
+        @_collections = {} unless defined?(@_collections)
+        return @_collections[name] unless @_collections[name].nil?
+
+        @_collections[name] = new(name)
       end
 
       # @return [Array<Author>] authors
       def all
-        return [] unless defined?(@@_collections)
-        @@_collections.sort.map(&:last) # sort and take values
+        return [] unless defined?(@_collections)
+
+        @_collections.sort.map(&:last) # sort and take values
       end
     end
 
@@ -46,9 +48,9 @@ module Ballantine
         "*#{repo}*: #{count} new #{word}\n#{lists.join("\n")}"
       end.join("\n")
 
-      results = {
-        'text' => "- <@#{name}>\n#{message}",
-        'color' => '#00B86A', # green
+      {
+        "text" => "- <@#{name}>\n#{message}",
+        "color" => "#00B86A", # green
       }
     end
 
@@ -58,7 +60,7 @@ module Ballantine
     # @param [Array(Integer, String)] count, word
     def retrieve_count_and_word(lists)
       count = lists.size
-      word = count == 1 ? 'commit' : 'commits'
+      word = count == 1 ? "commit" : "commits"
       [count, word]
     end
   end
