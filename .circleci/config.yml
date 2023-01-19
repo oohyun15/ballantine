@@ -30,11 +30,17 @@ jobs:
     steps:
       - checkout
       - run:
-          name: rspec
+          name: change directory to 'ruby'
+          command: cd ruby
+      - run:
+          name: bundle install
           command: |
-            cd ruby
-            bundle exec rspec --format progress --format RspecJunitFormatter -o /tmp/test-results/rspec.xml
-            cd ..
+            gem install bundler
+            bundle config
+            bundle check || bundle install
+      - run:
+          name: rspec
+          command: bundle exec rspec --format progress --format RspecJunitFormatter -o /tmp/test-results/rspec.xml
       - store_test_results:
           path: /tmp/test-results
 workflows:
