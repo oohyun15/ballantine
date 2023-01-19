@@ -27,13 +27,14 @@ module Ballantine
     end
 
     package_name "Ballantine"
-
     option "force", type: :boolean, aliases: "-f", default: false, desc: "Initialize forcely if already initialized."
     desc "init", "Initialize ballantine"
     def init
       conf.init_file(force: options["force"])
 
       puts "🥃 Initialized ballantine."
+
+      true
     end
 
     Config::AVAILABLE_ENVIRONMENTS.each { |env| option env, type: :boolean, default: false, desc: "Set envirment to `#{env}'." }
@@ -93,6 +94,8 @@ module Ballantine
     desc "version", "Display version information about ballntine"
     def version
       puts "ballantine version #{Ballantine::VERSION}"
+
+      Ballantine::VERSION
     end
 
     private
