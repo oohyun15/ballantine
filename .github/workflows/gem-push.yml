@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "ruby/ballantine.gemspec"
-      - "ruby/lib/ballantine/version.rb"
+    # paths:
+    #   - "ruby/ballantine.gemspec"
+    #   - "ruby/lib/ballantine/version.rb"
 jobs:
   build:
     name: Build + Publish
