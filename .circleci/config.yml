@@ -24,3 +24,19 @@ jobs:
             ballantine init
             echo "$ ballantine diff migration/ruby main"
             ballantine diff migration/ruby main
+  test:
+    docker:
+      - image: ruby:3.1.2
+    steps:
+      - checkout
+      - run:
+          name: rspec
+          command: bundle exec rspec --format progress --format RspecJunitFormatter -o /tmp/test-results/rspec.xml
+      - store_test_results:
+          path: /tmp/test-results
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build
+      - test
