@@ -16,11 +16,11 @@ jobs:
       - run:
           name: Run ballantine
           command: |
-            echo "$ `ballantine`"
+            echo "$ ballantine"
             ballantine
-            echo "$ `ballantine version`"
+            echo "$ ballantine version"
             ballantine version
-            echo "$ `ballantine init`"
+            echo "$ ballantine init"
             ballantine init
-            echo "$ `ballantine diff migration/ruby main`"
+            echo "$ ballantine diff migration/ruby main"
             ballantine diff migration/ruby main
