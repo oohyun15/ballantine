@@ -41,7 +41,7 @@ module Ballantine
     def config(key = nil, value = nil)
       # check environment value
       if Config::AVAILABLE_ENVIRONMENTS.map { |key| !options[key] }.reduce(:&)
-        raise NotAllowed, "Set environment value (#{Config::AVAILABLE_ENVIRONMENTS.map{ |key| "`--#{key}'" }.join(", ")})"
+        raise NotAllowed, "Set environment value (#{Config::AVAILABLE_ENVIRONMENTS.map { |key| "`--#{key}'" }.join(", ")})"
       elsif Config::AVAILABLE_ENVIRONMENTS.map { |key| !!options[key] }.reduce(:&)
         raise NotAllowed, "Environment value must be unique."
       end
@@ -54,50 +54,38 @@ module Ballantine
 
     desc "diff [TARGET] [SOURCE]", "Diff commits between TARGET and SOURCE"
     option TYPE_SLACK, type: :boolean, aliases: "-s", default: false, desc: "Send to slack using slack webhook URL."
-    def diff(from, to = %x(git rev-parse --abbrev-ref HEAD).chomp)
-      preprocess(from, to, **options)
-
-      # check argument is tag
-      from = check_tag(from)
-      to = check_tag(to)
+    def diff(target, source = %x(git rev-parse --abbrev-ref HEAD).chomp)
+      # validate arguments
+      validate(target, source, **options)
 
       # check commits are newest
       system("git pull -f &> /dev/null")
 
-      # set instance variables
-      @send_type = options[TYPE_SLACK] ? TYPE_SLACK : TYPE_TERMINAL
-      @app_name = File.basename(%x(git config --get remote.origin.url).chomp, ".git")
-      @main_path = Dir.pwd
-      @sub_path = if Dir[FILE_GITMODULES].any?
-        file = File.open(FILE_GITMODULES)
-        lines = file.readlines.map(&:chomp)
-        file.close
-        lines.grep(/path =/).map { |line| line[/(?<=path \=).*/, 0].strip }.sort
-      else
-        []
-      end
+      # init instance variables
+      init_variables(**options)
 
       # find github url, branch
-      main_url = github_url(%x(git config --get remote.origin.url).chomp)
-      current_branch = %x(git rev-parse --abbrev-ref HEAD).chomp
+      url = github_url(%x(git config --get remote.origin.url).chomp)
+      current_revision = %x(git rev-parse --abbrev-ref HEAD).chomp
 
       # get commit hash
-      main_from, sub_from = commit_hash(from)
-      main_to, sub_to = commit_hash(to)
-      system("git checkout #{current_branch} -f &> /dev/null")
+      from, sub_from = commit_hash(target)
+      to, sub_to = commit_hash(source)
+      system("git checkout #{current_revision} -f &> /dev/null")
 
       # check commits
-      check_commits(main_from, main_to, main_url)
-      @sub_path.each_with_index do |path, idx|
+      check_commits(from, to, url)
+      sub_path.each_with_index do |path, idx|
         next if sub_from[idx] == sub_to[idx]
 
         Dir.chdir(path)
         sub_url = github_url(%x(git config --get remote.origin.url).chomp)
         check_commits(sub_from[idx], sub_to[idx], sub_url)
-        Dir.chdir(@main_path)
+        Dir.chdir(main_path)
       end
 
-      send_commits(from, to, main_url)
+      # send commits
+      send_commits(target, source, from, to, url)
 
       exit(0)
     end
@@ -111,11 +99,11 @@ module Ballantine
 
     def conf; @conf ||= Config.new(@env) end
 
-    # @param [String] from
-    # @param [String] to
+    # @param [String] target
+    # @param [String] source
     # @param [Hash] options
     # @return [NilClass] nil
-    def preprocess(from, to, **options)
+    def validate(target, source, **options)
       if Dir[".git"].empty?
         raise NotAllowed, "ERROR: There is no \".git\" in #{Dir.pwd}."
       end
@@ -124,8 +112,8 @@ module Ballantine
         raise NotAllowed, "ERROR: Uncommitted file exists. stash or commit uncommitted files.\n#{uncommitted.join("\n")}"
       end
 
-      if from == to
-        raise NotAllowed, "ERROR: target(#{from}) and source(#{to}) can't be equal."
+      if target == source
+        raise NotAllowed, "ERROR: target(#{target}) and source(#{source}) can't be equal."
       end
 
       if options[TYPE_SLACK] && !conf.get_data(Config::KEY_SLACK_WEBHOOK)
@@ -133,6 +121,24 @@ module Ballantine
       end
 
       nil
+    end
+
+    # @param [Hash] options
+    # @return [Boolean]
+    def init_variables(**options)
+      @send_type = options[TYPE_SLACK] ? TYPE_SLACK : TYPE_TERMINAL
+      @app_name = File.basename(%x(git config --get remote.origin.url).chomp, ".git")
+      @main_path = Dir.pwd
+      @sub_path =
+        if Dir[FILE_GITMODULES].any?
+          file = File.open(FILE_GITMODULES)
+          lines = file.readlines.map(&:chomp)
+          file.close
+          lines.grep(/path =/).map { |line| line[/(?<=path \=).*/, 0].strip }.sort
+        else
+          []
+        end
+      true
     end
 
     # @param [String] name
@@ -179,14 +185,16 @@ module Ballantine
     end
 
     # @param [String] hash
-    # @param [Array<String>] sub_path
     # @return [Array(String, Array<String>)] main, sub's hash
     def commit_hash(hash)
+      # check argument is tag
+      hash = check_tag(hash)
+
       system("git checkout #{hash} -f &> /dev/null")
       system("git pull &> /dev/null")
       main_hash = %x(git --no-pager log -1 --format='%h').chomp
       sub_hash =
-        if @sub_path.any?
+        if sub_path.any?
           %x(git ls-tree HEAD #{@sub_path.join(" ")}).split("\n").map { |line| line.split(" ")[2] }
         else
           []
@@ -199,31 +207,33 @@ module Ballantine
     # @param [String] format
     # @param [Integer] ljust
     def commit_format(url, ljust: DEFAULT_LJUST)
-      case @send_type
+      case send_type
       when TYPE_TERMINAL
         " - " + "%h".yellow + " %<(#{ljust})%s " + "#{url}/commit/%H".gray
       when TYPE_SLACK
         "\\\`<#{url}/commit/%H|%h>\\\` %s - %an"
-      else raise AssertionFailed, "Unknown send type: #{@send_type}"
+      else raise AssertionFailed, "Unknown send type: #{send_type}"
       end
     end
 
+    # @param [String] target
+    # @param [String] source
     # @param [String] from
     # @param [String] to
     # @param [String] url
     # @return [NilClass] nil
-    def send_commits(from, to, url)
+    def send_commits(target, source, from, to, url)
       authors = Author.all
       if authors.empty?
-        raise ArgumentError, "ERROR: There is no commits between \"#{from}\" and \"#{to}\""
+        raise ArgumentError, "ERROR: There is no commits between \"#{target}\" and \"#{source}\""
       end
 
       number = authors.size
       last_commit = %x(git --no-pager log --reverse --format="#{commit_format(url, ljust: DEFAULT_LJUST - 22)}" --abbrev=7 #{from}..#{to} -1).strip
 
-      case @send_type
+      case send_type
       when TYPE_TERMINAL
-        puts "Check commits before #{@app_name.red} deployment. (#{from.cyan} <- #{to.cyan})".ljust(DEFAULT_LJUST + 34) + " #{url}/compare/#{from}...#{to}".gray
+        puts "Check commits before #{app_name.red} deployment. (#{target.cyan} <- #{source.cyan})".ljust(DEFAULT_LJUST + 34) + " #{url}/compare/#{from}...#{to}".gray
         puts "Author".yellow + ": #{number}"
         puts "Last commit".blue + ": #{last_commit}"
         authors.map(&:print_commits)
@@ -239,7 +249,7 @@ module Ballantine
         request = Net::HTTP::Post.new(uri)
         request.content_type = "application/json"
         request.body = JSON.dump({
-          "text" => ":white_check_mark: *#{@app_name}* deployment request by <@#{actor}> (\`<#{url}/tree/#{from}|#{from}>\` <- \`<#{url}/tree/#{to}|#{to}>\` <#{url}/compare/#{from}...#{to}|compare>)\n:technologist: Author: #{number}\nLast commit: #{last_commit}",
+          "text" => ":white_check_mark: *#{app_name}* deployment request by <@#{actor}> (\`<#{url}/tree/#{from}|#{target}>\` <- \`<#{url}/tree/#{to}|#{source}>\` <#{url}/compare/#{from}...#{to}|compare>)\n:technologist: Author: #{number}\nLast commit: #{last_commit}",
           "attachments" => messages,
         })
         req_options = { use_ssl: uri.scheme == "https" }
@@ -248,7 +258,7 @@ module Ballantine
         end
         puts response.message
       else
-        raise AssertionFailed, "Unknown send type: #{@send_type}"
+        raise AssertionFailed, "Unknown send type: #{send_type}"
       end
     end
   end
