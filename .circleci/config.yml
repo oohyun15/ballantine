@@ -9,7 +9,7 @@ jobs:
           name: Build ruby version
           command: |
             cd ruby
-            gem install bundler -v 2.3.20
+            gem install bundler
             gem build ballantine.gemspec
             gem install ballantine
             cd ..
