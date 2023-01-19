@@ -2,11 +2,8 @@ name: Ruby Gem
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - "ruby/ballantine.gemspec"
-      - "ruby/lib/ballantine/version.rb"
+    tags:
+      - /^v.*/
 jobs:
   build:
     name: Build + Publish
