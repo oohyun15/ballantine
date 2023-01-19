@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.description = "Ballantine helps you describe your commits easier and prettier from cli & slack."
   spec.homepage = "https://github.com/oohyun15/ballantine"
   spec.license = "MIT"
-  spec.required_ruby_version = ">= 2.7.6"
+  spec.required_ruby_version = ">= 3.1"
   spec.add_dependency "thor", "~> 1.2.1"
   spec.add_development_dependency "yard", "~> 0.9.28"
 
