@@ -3,7 +3,7 @@ name: Ruby Gem
 on:
   push:
     tags:
-      - /^v.*/
+      - v0.*
 jobs:
   build:
     name: Build + Publish
