@@ -22,6 +22,7 @@ jobs:
         ruby-version: 3.1.x
     - name: Publish to GPR
       run: |
+        cd ruby
         mkdir -p $HOME/.gem
         touch $HOME/.gem/credentials
         chmod 0600 $HOME/.gem/credentials
@@ -34,6 +35,7 @@ jobs:
 
     - name: Publish to RubyGems
       run: |
+        cd ruby
         mkdir -p $HOME/.gem
         touch $HOME/.gem/credentials
         chmod 0600 $HOME/.gem/credentials
