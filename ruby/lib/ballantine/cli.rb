@@ -2,17 +2,6 @@
 
 module Ballantine
   class CLI < Thor
-    # reference: https://github.com/desktop/desktop/blob/a7bca44088b105a04714dc4628f4af50f6f179c3/app/src/lib/remote-parsing.ts#L27-L44
-    GITHUB_REGEXES = [
-      '^https?://(.+)/(.+)/(.+)\.git/?$', # protocol: https -> https://github.com/oohyun15/ballantine.git | https://github.com/oohyun15/ballantine.git/
-      '^https?://(.+)/(.+)/(.+)/?$',      # protocol: https -> https://github.com/oohyun15/ballantine | https://github.com/oohyun15/ballantine/
-      '^git@(.+):(.+)/(.+)\.git$',        # protocol: ssh   -> git@github.com:oohyun15/ballantine.git
-      '^git@(.+):(.+)/(.+)/?$',           # protocol: ssh   -> git@github.com:oohyun15/ballantine | git@github.com:oohyun15/ballantine/
-      '^git:(.+)/(.+)/(.+)\.git$',        # protocol: ssh   -> git:github.com/oohyun15/ballantine.git
-      '^git:(.+)/(.+)/(.+)/?$',           # protocol: ssh   -> git:github.com/oohyun15/ballantine | git:github.com/oohyun15/ballantine/
-      '^ssh://git@(.+)/(.+)/(.+)\.git$',  # protocol: ssh   -> ssh://git@github.com/oohyun15/ballantine.git
-    ].freeze
-
     FILE_GITMODULES = ".gitmodules"
 
     TYPE_TERMINAL = "terminal"
@@ -20,7 +9,7 @@ module Ballantine
 
     DEFAULT_LJUST = 80
 
-    attr_reader :app_name, :main_path, :sub_path, :send_type
+    attr_reader :send_type, :repo, :sub_repos
 
     class << self
       def exit_on_failure?; exit(1) end
@@ -66,7 +55,6 @@ module Ballantine
       init_variables(**options)
 
       # find github url, branch
-      url = github_url(%x(git config --get remote.origin.url).chomp)
       current_revision = %x(git rev-parse --abbrev-ref HEAD).chomp
 
       # get commit hash
@@ -75,8 +63,8 @@ module Ballantine
       system("git checkout #{current_revision} -f &> /dev/null")
 
       # check commits
-      check_commits(from, to, url)
-      sub_path.each_with_index do |path, idx|
+      check_commits(from, to, @repo.url)
+      sub_paths.each_with_index do |path, idx|
         next if sub_from[idx] == sub_to[idx]
 
         Dir.chdir(path)
@@ -86,7 +74,7 @@ module Ballantine
       end
 
       # send commits
-      send_commits(target, source, from, to, url)
+      send_commits(target, source, from, to, @repo.url)
 
       exit(0)
     end
@@ -130,17 +118,20 @@ module Ballantine
     # @return [Boolean]
     def init_variables(**options)
       @send_type = options[TYPE_SLACK] ? TYPE_SLACK : TYPE_TERMINAL
-      @app_name = File.basename(%x(git config --get remote.origin.url).chomp, ".git")
-      @main_path = Dir.pwd
-      @sub_path =
+      @repo = Repository.find_or_create_by(Dir.pwd)
+      @sub_repos =
         if Dir[FILE_GITMODULES].any?
           file = File.open(FILE_GITMODULES)
           lines = file.readlines.map(&:chomp)
           file.close
-          lines.grep(/path =/).map { |line| line[/(?<=path \=).*/, 0].strip }.sort
+          lines.grep(/path =/).map do |line|
+            Repository.find_or_create_by(repo.path + "/" + line[/(?<=path \=).*/, 0].strip)
+          end
         else
           []
         end
+
+      Dir.chdir(repo.path)
       true
     end
 
@@ -175,18 +166,7 @@ module Ballantine
       nil
     end
 
-    # @param [String] url
-    # @return [String] github_url
-    def github_url(url)
-      owner, repository = GITHUB_REGEXES.each do |regex|
-        if (str = url.match(regex))
-          break [str[2], str[3]]
-        end
-      end
-
-      "https://github.com/#{owner}/#{repository}"
-    end
-
+    # TODO: check target, source context
     # @param [String] hash
     # @return [Array(String, Array<String>)] main, sub's hash
     def commit_hash(hash)
@@ -197,8 +177,8 @@ module Ballantine
       system("git pull &> /dev/null")
       main_hash = %x(git --no-pager log -1 --format='%h').chomp
       sub_hash =
-        if sub_path.any?
-          %x(git ls-tree HEAD #{@sub_path.join(" ")}).split("\n").map { |line| line.split(" ")[2] }
+        if sub_repos.any?
+          %x(git ls-tree HEAD #{sub_repos.map(&:path).join(" ")}).split("\n").map { |line| line.split(" ")[2] }
         else
           []
         end
@@ -236,7 +216,7 @@ module Ballantine
 
       case send_type
       when TYPE_TERMINAL
-        puts "Check commits before #{app_name.red} deployment. (#{target.cyan} <- #{source.cyan})".ljust(DEFAULT_LJUST + 34) + " #{url}/compare/#{from}...#{to}".gray
+        puts "Check commits before #{repo.name.red} deployment. (#{target.cyan} <- #{source.cyan})".ljust(DEFAULT_LJUST + 34) + " #{url}/compare/#{from}...#{to}".gray
         puts "Author".yellow + ": #{number}"
         puts "Last commit".blue + ": #{last_commit}"
         authors.map(&:print_commits)
@@ -252,7 +232,7 @@ module Ballantine
         request = Net::HTTP::Post.new(uri)
         request.content_type = "application/json"
         request.body = JSON.dump({
-          "text" => ":white_check_mark: *#{app_name}* deployment request by <@#{actor}> (\`<#{url}/tree/#{from}|#{target}>\` <- \`<#{url}/tree/#{to}|#{source}>\` <#{url}/compare/#{from}...#{to}|compare>)\n:technologist: Author: #{number}\nLast commit: #{last_commit}",
+          "text" => ":white_check_mark: *#{repo.name}* deployment request by <@#{actor}> (\`<#{url}/tree/#{from}|#{target}>\` <- \`<#{url}/tree/#{to}|#{source}>\` <#{url}/compare/#{from}...#{to}|compare>)\n:technologist: Author: #{number}\nLast commit: #{last_commit}",
           "attachments" => messages,
         })
         req_options = { use_ssl: uri.scheme == "https" }
