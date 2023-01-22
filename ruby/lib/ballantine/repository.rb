@@ -20,11 +20,11 @@ module Ballantine
     class << self
       # @param [String] path
       # @return [Repository]
-      def find_or_create_by(path:)
+      def find_or_create_by(path:, remote_url:)
         @_collections = {} unless defined?(@_collections)
         return @_collections[path] unless @_collections[path].nil?
 
-        @_collections[path] = new(path:)
+        @_collections[path] = new(path:, remote_url:)
       end
 
       # @return [Array<Repository>]
@@ -36,13 +36,13 @@ module Ballantine
     end
 
     # @param [String] path
-    def initialize(path:)
-      Dir.chdir(path)
+    # @param [String] remote_url
+    def initialize(path:, remote_url:)
       @path = path
       @commits = []
       @sub_repos = retrieve_sub_repos
       @owner, @name = GITHUB_REGEXES.each do |regex|
-        str = %x(git config --get remote.origin.url).chomp.match(regex)
+        str = remote_url.match(regex)
         break [str[2], str[3]] if str
       end
       @url = "https://github.com/#{owner}/#{name}"
@@ -103,23 +103,24 @@ module Ballantine
 
     # @return [Array<Repository>]
     def retrieve_sub_repos
-      return [] unless Dir[FILE_GITMODULES].any?
+      gitmodule = path + "/" + FILE_GITMODULES
+      return [] unless Dir[gitmodule].any?
 
-      file = File.open(FILE_GITMODULES)
-      lines = file.readlines.map(&:chomp)
+      file = File.open(gitmodule)
+      resp = file.read
       file.close
-      repos = lines.grep(/path =/).map do |line|
-        repo = Repository.find_or_create_by(
-          path: path + "/" + line[/(?<=path \=).*/, 0].strip,
-        )
-        repo.main_repo = self
-        repo
-      end
 
-      # NOTE: current directory is changed to submodule repository path after initialize, so chdir to current `path`.
-      Dir.chdir(path)
-
-      repos
+      resp.split(/\[submodule.*\]/)
+        .select { |line| line.match?(/path = /) }
+        .map do |line|
+          line = line.strip
+          repo = Repository.find_or_create_by(
+            path: path + "/" + line.match(/path = (.*)/)[1],
+            remote_url: line.match(/url = (.*)/)[1],
+          )
+          repo.instance_variable_set("@main_repo", self)
+          repo
+        end
     end
   end
 end

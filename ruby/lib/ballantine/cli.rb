@@ -112,6 +112,7 @@ module Ballantine
       @send_type = options[TYPE_SLACK] ? TYPE_SLACK : TYPE_TERMINAL
       @repo = Repository.find_or_create_by(
         path: Dir.pwd,
+        remote_url: %x(git config --get remote.origin.url).chomp,
       )
 
       # init repo
