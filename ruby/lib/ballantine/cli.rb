@@ -2,14 +2,12 @@
 
 module Ballantine
   class CLI < Thor
-    FILE_GITMODULES = ".gitmodules"
-
     TYPE_TERMINAL = "terminal"
     TYPE_SLACK = "slack"
 
     DEFAULT_LJUST = 80
 
-    attr_reader :send_type, :repo, :sub_repos
+    attr_reader :send_type, :repo
 
     class << self
       def exit_on_failure?; exit(1) end
@@ -52,15 +50,7 @@ module Ballantine
       system("git pull -f &> /dev/null")
 
       # init instance variables
-      init_variables(**options)
-
-      # find github url, branch
-      current_revision = %x(git rev-parse --abbrev-ref HEAD).chomp
-
-      # get commit hash
-      from, sub_from = commit_hash(target)
-      to, sub_to = commit_hash(source)
-      system("git checkout #{current_revision} -f &> /dev/null")
+      init_variables(target, source, **options)
 
       # check commits
       check_commits(from, to, @repo.url)
@@ -114,35 +104,19 @@ module Ballantine
       nil
     end
 
+    # @param [String] target
+    # @param [String] source
     # @param [Hash] options
     # @return [Boolean]
-    def init_variables(**options)
+    def init_variables(target, source, **options)
       @send_type = options[TYPE_SLACK] ? TYPE_SLACK : TYPE_TERMINAL
-      @repo = Repository.find_or_create_by(Dir.pwd)
-      @sub_repos =
-        if Dir[FILE_GITMODULES].any?
-          file = File.open(FILE_GITMODULES)
-          lines = file.readlines.map(&:chomp)
-          file.close
-          lines.grep(/path =/).map do |line|
-            Repository.find_or_create_by(repo.path + "/" + line[/(?<=path \=).*/, 0].strip)
-          end
-        else
-          []
-        end
+      @repo = Repository.find_or_create_by(
+        path: Dir.pwd,
+      )
 
-      Dir.chdir(repo.path)
+      # init repo
+      repo.init_variables(target, source)
       true
-    end
-
-    # @param [String] name
-    # @return [String] hash
-    def check_tag(name)
-      list = %x(git tag -l).split("\n")
-      return name unless list.grep(name).any?
-
-      system("git fetch origin tag #{name} -f &> /dev/null")
-      %x(git rev-list -n 1 #{name}).chomp[0...7]
     end
 
     # @param [String] from
@@ -152,7 +126,7 @@ module Ballantine
     def check_commits(from, to, url)
       repo = File.basename(%x(git config --get remote.origin.url).chomp, ".git")
       names = %x(git --no-pager log --pretty=format:"%an" #{from}..#{to}).split("\n").uniq.sort
-      authors = names.map { |name| Author.find_or_create_by(name) }
+      authors = names.map { |name| Author.find_or_create_by(name:) }
       authors.each do |author|
         format = commit_format(url, ljust: DEFAULT_LJUST - 10)
         commits =
@@ -164,26 +138,6 @@ module Ballantine
         author.commits[repo] = commits.split("\n")
       end
       nil
-    end
-
-    # TODO: check target, source context
-    # @param [String] hash
-    # @return [Array(String, Array<String>)] main, sub's hash
-    def commit_hash(hash)
-      # check argument is tag
-      hash = check_tag(hash)
-
-      system("git checkout #{hash} -f &> /dev/null")
-      system("git pull &> /dev/null")
-      main_hash = %x(git --no-pager log -1 --format='%h').chomp
-      sub_hash =
-        if sub_repos.any?
-          %x(git ls-tree HEAD #{sub_repos.map(&:path).join(" ")}).split("\n").map { |line| line.split(" ")[2] }
-        else
-          []
-        end
-
-      [main_hash, sub_hash]
     end
 
     # @param [String] url

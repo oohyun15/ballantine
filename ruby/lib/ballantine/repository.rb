@@ -12,17 +12,19 @@ module Ballantine
       '^git:(.+)/(.+)/(.+)/?$',           # protocol: ssh   -> git:github.com/oohyun15/ballantine | git:github.com/oohyun15/ballantine/
       '^ssh://git@(.+)/(.+)/(.+)\.git$',  # protocol: ssh   -> ssh://git@github.com/oohyun15/ballantine.git
     ].freeze
+    FILE_GITMODULES = ".gitmodules"
 
-    attr_accessor :name, :path, :owner, :commits, :remote_url
+    attr_reader :name, :path, :owner, :url, :from, :to # attributes
+    attr_reader :main_repo, :sub_repos, :commits # associations
 
     class << self
-      # @param [String] name
+      # @param [String] path
       # @return [Repository]
-      def find_or_create_by(name)
+      def find_or_create_by(path:)
         @_collections = {} unless defined?(@_collections)
-        return @_collections[name] unless @_collections[name].nil?
+        return @_collections[path] unless @_collections[path].nil?
 
-        @_collections[name] = new(name)
+        @_collections[path] = new(path:)
       end
 
       # @return [Array<Repository>]
@@ -34,21 +36,90 @@ module Ballantine
     end
 
     # @param [String] path
-    def initialize(path)
+    def initialize(path:)
+      Dir.chdir(path)
       @path = path
       @commits = []
-
-      Dir.chdir(path)
-      @remote_url = %x(git config --get remote.origin.url).chomp
+      @sub_repos = retrieve_sub_repos
       @owner, @name = GITHUB_REGEXES.each do |regex|
-        str = remote_url.match(regex)
+        str = %x(git config --get remote.origin.url).chomp.match(regex)
         break [str[2], str[3]] if str
       end
+      @url = "https://github.com/#{owner}/#{name}"
     end
 
+    # @param [String] target
+    # @param [String] source
     # @return [String]
-    def url
-      "https://github.com/#{owner}/#{repository}"
+    def init_variables(target, source)
+      current_revision = %x(git rev-parse --abbrev-ref HEAD).chomp
+
+      foo = lambda do |hash, context|
+        hash = check_tag(hash)
+        system("git checkout #{hash} -f &> /dev/null")
+        system("git pull &> /dev/null")
+
+        hash = %x(git --no-pager log -1 --format='%h').chomp
+        commit = Commit.find_or_create_by(
+          hash: hash,
+          repo: self,
+        )
+        instance_variable_set("@#{context}", commit)
+
+        if sub_repos.any?
+          %x(git ls-tree HEAD #{sub_repos.map(&:path).join(" ")}).split("\n").map do |line|
+            _, _, sub_hash, sub_path = line.split(" ")
+            sub_repo = Repository.find_or_create_by(
+              path: path + "/" + sub_path,
+            )
+            sub_commit = Commit.find_or_create_by(
+              hash: sub_hash,
+              repo: sub_repo,
+            )
+            sub_repo.instance_variable_set("@#{context}", sub_commit)
+          end
+        end
+      end
+
+      foo.call(target, "from")
+      foo.call(source, "to")
+
+      system("git checkout #{current_revision} -f &> /dev/null")
+
+      true
+    end
+
+    private
+
+    # @param [String] name
+    # @return [String] hash
+    def check_tag(name)
+      list = %x(git tag -l).split("\n")
+      return name unless list.grep(name).any?
+
+      system("git fetch origin tag #{name} -f &> /dev/null")
+      %x(git rev-list -n 1 #{name}).chomp[0...7]
+    end
+
+    # @return [Array<Repository>]
+    def retrieve_sub_repos
+      return [] unless Dir[FILE_GITMODULES].any?
+
+      file = File.open(FILE_GITMODULES)
+      lines = file.readlines.map(&:chomp)
+      file.close
+      repos = lines.grep(/path =/).map do |line|
+        repo = Repository.find_or_create_by(
+          path: path + "/" + line[/(?<=path \=).*/, 0].strip,
+        )
+        repo.main_repo = self
+        repo
+      end
+
+      # NOTE: current directory is changed to submodule repository path after initialize, so chdir to current `path`.
+      Dir.chdir(path)
+
+      repos
     end
   end
 end

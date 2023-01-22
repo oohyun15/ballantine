@@ -7,11 +7,11 @@ module Ballantine
     class << self
       # @param [String] name
       # @return [Author] author
-      def find_or_create_by(name)
+      def find_or_create_by(name:)
         @_collections = {} unless defined?(@_collections)
         return @_collections[name] unless @_collections[name].nil?
 
-        @_collections[name] = new(name)
+        @_collections[name] = new(name:)
       end
 
       # @return [Array<Author>] authors
@@ -23,7 +23,7 @@ module Ballantine
     end
 
     # @param [String] name
-    def initialize(name)
+    def initialize(name:)
       @name = name
       @commits = {}
     end
