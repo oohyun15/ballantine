@@ -5,8 +5,6 @@ module Ballantine
     TYPE_TERMINAL = "terminal"
     TYPE_SLACK = "slack"
 
-    DEFAULT_LJUST = 80
-
     attr_reader :send_type, :repo
 
     class << self
@@ -53,15 +51,7 @@ module Ballantine
       init_variables(target, source, **options)
 
       # check commits
-      check_commits(from, to, @repo.url)
-      sub_paths.each_with_index do |path, idx|
-        next if sub_from[idx] == sub_to[idx]
-
-        Dir.chdir(path)
-        sub_url = github_url(%x(git config --get remote.origin.url).chomp)
-        check_commits(sub_from[idx], sub_to[idx], sub_url)
-        Dir.chdir(main_path)
-      end
+      check_commits(**options)
 
       # send commits
       send_commits(target, source, from, to, @repo.url)
@@ -116,42 +106,17 @@ module Ballantine
       )
 
       # init repo
+      Repository.send_type = @send_type
       repo.init_variables(target, source)
       true
     end
 
-    # @param [String] from
-    # @param [String] to
-    # @param [String] url
-    # @return [NilClass] nil
-    def check_commits(from, to, url)
-      repo = File.basename(%x(git config --get remote.origin.url).chomp, ".git")
-      names = %x(git --no-pager log --pretty=format:"%an" #{from}..#{to}).split("\n").uniq.sort
-      authors = names.map { |name| Author.find_or_create_by(name:) }
-      authors.each do |author|
-        format = commit_format(url, ljust: DEFAULT_LJUST - 10)
-        commits =
-          %x(git --no-pager log --reverse --no-merges --author="#{author.name}" --format="#{format}" --abbrev=7 #{from}..#{to})
-            .gsub('"', '\"')
-            .gsub(/[\u0080-\u00ff]/, "")
-        next if commits.empty?
+    # @param [Hash] options
+    # @return [Boolean]
+    def check_commits(**options)
+      repo.check_commits
 
-        author.commits[repo] = commits.split("\n")
-      end
-      nil
-    end
-
-    # @param [String] url
-    # @param [String] format
-    # @param [Integer] ljust
-    def commit_format(url, ljust: DEFAULT_LJUST)
-      case send_type
-      when TYPE_TERMINAL
-        " - " + "%h".yellow + " %<(#{ljust})%s " + "#{url}/commit/%H".gray
-      when TYPE_SLACK
-        "\\\`<#{url}/commit/%H|%h>\\\` %s - %an"
-      else raise AssertionFailed, "Unknown send type: #{send_type}"
-      end
+      true
     end
 
     # @param [String] target

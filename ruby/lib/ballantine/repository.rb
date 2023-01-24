@@ -13,14 +13,17 @@ module Ballantine
       '^ssh://git@(.+)/(.+)/(.+)\.git$',  # protocol: ssh   -> ssh://git@github.com/oohyun15/ballantine.git
     ].freeze
     FILE_GITMODULES = ".gitmodules"
+    DEFAULT_LJUST = 80
+    PARSER_TOKEN = "!#!#"
 
-    attr_reader :name, :path, :owner, :url, :from, :to # attributes
+    attr_reader :name, :path, :owner, :url, :from, :to, :format # attributes
     attr_reader :main_repo, :sub_repos, :commits # associations
 
     class << self
       # @param [String] path
+      # @param [String] remote_url
       # @return [Repository]
-      def find_or_create_by(path:, remote_url:)
+      def find_or_create_by(path:, remote_url: nil)
         @_collections = {} unless defined?(@_collections)
         return @_collections[path] unless @_collections[path].nil?
 
@@ -33,6 +36,9 @@ module Ballantine
 
         @_collections.values
       end
+
+      def send_type; @_send_type end
+      def send_type=(value); @_send_type = value end
     end
 
     # @param [String] path
@@ -46,11 +52,12 @@ module Ballantine
         break [str[2], str[3]] if str
       end
       @url = "https://github.com/#{owner}/#{name}"
+      @format = check_format(ljust: DEFAULT_LJUST - 10)
     end
 
     # @param [String] target
     # @param [String] source
-    # @return [String]
+    # @return [Boolean]
     def init_variables(target, source)
       current_revision = %x(git rev-parse --abbrev-ref HEAD).chomp
 
@@ -89,7 +96,35 @@ module Ballantine
       true
     end
 
+    # @return [Boolean]
+    def check_commits
+      authors = retrieve_authors
+      authors.each do |author|
+        commits = retrieve_commits(author)
+        next if commits.empty?
+
+        author.commits[name] = commits
+        # TODO: append `commits` to `repo.commits`
+      end
+
+      if sub_repos.any?
+        sub_repos.each do |sub_repo|
+          next if sub_repo.from == sub_repo.to
+
+          Dir.chdir(sub_repo.path)
+          sub_repo.check_commits
+        end
+        Dir.chdir(path)
+      end
+
+      true
+    end
+
     private
+
+    def send_type
+      self.class.send_type
+    end
 
     # @param [String] name
     # @return [String] hash
@@ -99,6 +134,19 @@ module Ballantine
 
       system("git fetch origin tag #{name} -f &> /dev/null")
       %x(git rev-list -n 1 #{name}).chomp[0...7]
+    end
+
+    # @param [Integer] ljust
+    # @return [String]
+    def check_format(ljust: DEFAULT_LJUST)
+      case send_type
+      when CLI::TYPE_TERMINAL
+        " - " + "%h".yellow + " %<(#{ljust})%s " + "#{url}/commit/%H".gray
+      when CLI::TYPE_SLACK
+        "\\\`<#{url}/commit/%H|%h>\\\` %s - %an"
+      else
+        raise AssertionFailed, "Unknown send type: #{send_type}"
+      end
     end
 
     # @return [Array<Repository>]
@@ -121,6 +169,33 @@ module Ballantine
           repo.instance_variable_set("@main_repo", self)
           repo
         end
+    end
+
+    # @return [Array<Author>]
+    def retrieve_authors
+      %x(git --no-pager log --pretty=format:"%an" #{from}..#{to})
+        .split("\n").uniq.sort
+        .map { |name| Author.find_or_create_by(name:) }
+    end
+
+    # @param [Author] author
+    # @return [Array<Commit>]
+    def retrieve_commits(author)
+      results =
+        %x(git --no-pager log --reverse --no-merges --author="#{author.name}" --format="%h#{PARSER_TOKEN}#{format}" --abbrev=7 #{from}..#{to})
+          .gsub('"', '\"')
+          .gsub(/[\u0080-\u00ff]/, "")
+          .split("\n")
+
+      results.map do |result|
+        hash, message = result.split(PARSER_TOKEN)
+        Commit.find_or_create_by(
+          hash: hash,
+          repo: self,
+          message: message,
+          author: author,
+        )
+      end
     end
   end
 end
