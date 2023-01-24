@@ -11,7 +11,7 @@ jobs:
             cd ruby
             gem install bundler
             gem build ballantine.gemspec
-            gem install ballantine
+            gem install ballantine*.gem
             cd ..
       - run:
           name: Run ballantine
