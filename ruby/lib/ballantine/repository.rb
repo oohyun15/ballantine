@@ -165,6 +165,7 @@ module Ballantine
 
       resp.split(/\[submodule.*\]/)
         .select { |line| line.match?(/path = /) }
+        .sort
         .map do |line|
           line = line.strip
           repo = Repository.find_or_create_by(
