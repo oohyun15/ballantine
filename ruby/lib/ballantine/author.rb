@@ -60,7 +60,7 @@ module Ballantine
     # @param [Array<Commit>] commits
     # @param [Array(Integer, String)] count, word
     def retrieve_count_and_word(commits)
-      count = lists.size
+      count = commits.size
       word = count == 1 ? "commit" : "commits"
       [count, word]
     end
