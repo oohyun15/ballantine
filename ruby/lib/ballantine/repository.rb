@@ -13,7 +13,7 @@ module Ballantine
       '^ssh://git@(.+)/(.+)/(.+)\.git$',  # protocol: ssh   -> ssh://git@github.com/oohyun15/ballantine.git
     ].freeze
     FILE_GITMODULES = ".gitmodules"
-    DEFAULT_LJUST = 80
+    DEFAULT_LJUST = 70
     PARSER_TOKEN = "!#!#"
 
     attr_reader :name, :path, :owner, :url, :from, :to, :format # attributes
@@ -52,7 +52,7 @@ module Ballantine
         break [str[2], str[3]] if str
       end
       @url = "https://github.com/#{owner}/#{name}"
-      @format = check_format(ljust: DEFAULT_LJUST - 10)
+      @format = check_format
     end
 
     # @param [String] target
@@ -118,6 +118,11 @@ module Ballantine
       end
 
       true
+    end
+
+    # @return [String]
+    def print_last_commit
+      %x(git --no-pager log --reverse --format="#{check_format(ljust: DEFAULT_LJUST - 12)}" --abbrev=7 #{from}..#{to} -1).strip
     end
 
     private

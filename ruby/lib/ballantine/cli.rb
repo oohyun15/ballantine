@@ -54,7 +54,7 @@ module Ballantine
       check_commits(**options)
 
       # send commits
-      send_commits(target, source, from, to, @repo.url)
+      send_commits(target, source, **options)
 
       exit(0)
     end
@@ -121,22 +121,20 @@ module Ballantine
 
     # @param [String] target
     # @param [String] source
-    # @param [String] from
-    # @param [String] to
-    # @param [String] url
-    # @return [NilClass] nil
-    def send_commits(target, source, from, to, url)
+    # @param [Hash] options
+    # @return [Boolean]
+    def send_commits(target, source, **options)
       authors = Author.all
       if authors.empty?
         raise ArgumentError, "ERROR: There is no commits between \"#{target}\" and \"#{source}\""
       end
 
       number = authors.size
-      last_commit = %x(git --no-pager log --reverse --format="#{commit_format(url, ljust: DEFAULT_LJUST - 22)}" --abbrev=7 #{from}..#{to} -1).strip
+      last_commit = repo.print_last_commit
 
       case send_type
       when TYPE_TERMINAL
-        puts "Check commits before #{repo.name.red} deployment. (#{target.cyan} <- #{source.cyan})".ljust(DEFAULT_LJUST + 34) + " #{url}/compare/#{from}...#{to}".gray
+        puts "Check commits before #{repo.name.red} deployment. (#{target.cyan} <- #{source.cyan})".ljust(Repository::DEFAULT_LJUST + 44) + " #{url}/compare/#{from}...#{to}".gray
         puts "Author".yellow + ": #{number}"
         puts "Last commit".blue + ": #{last_commit}"
         authors.map(&:print_commits)
@@ -152,17 +150,19 @@ module Ballantine
         request = Net::HTTP::Post.new(uri)
         request.content_type = "application/json"
         request.body = JSON.dump({
-          "text" => ":white_check_mark: *#{repo.name}* deployment request by <@#{actor}> (\`<#{url}/tree/#{from}|#{target}>\` <- \`<#{url}/tree/#{to}|#{source}>\` <#{url}/compare/#{from}...#{to}|compare>)\n:technologist: Author: #{number}\nLast commit: #{last_commit}",
+          "text" => ":white_check_mark: *#{repo.name}* deployment request by <@#{actor}>" \
+            " (\`<#{repo.url}/tree/#{repo.from}|#{target}>\` <- \`<#{repo.url}/tree/#{repo.to}|#{source}>\` <#{repo.url}/compare/#{repo.from}...#{repo.to}|compare>)" \
+            "\n:technologist: Author: #{number}\nLast commit: #{last_commit}",
           "attachments" => messages,
         })
         req_options = { use_ssl: uri.scheme == "https" }
-        response = Net::HTTP.start(uri.hostname, uri.port, req_options) do |http|
-          http.request(request)
-        end
+        response = Net::HTTP.start(uri.hostname, uri.port, req_options) { |http| http.request(request) }
         puts response.message
       else
         raise AssertionFailed, "Unknown send type: #{send_type}"
       end
+
+      true
     end
   end
 end

@@ -2,7 +2,7 @@
 
 module Ballantine
   class Author
-    attr_accessor :name, :commits
+    attr_reader :name, :commits_hash
 
     class << self
       # @param [String] name
@@ -25,27 +25,28 @@ module Ballantine
     # @param [String] name
     def initialize(name:)
       @name = name
-      @commits = {}
+      @commits_hash = {}
     end
 
-    # @return [NilClass] nil
+    # @return [Boolean]
     def print_commits
       puts "\n" + "@#{name}".green
-      @commits.each do |repo, lists|
-        count, word = retrieve_count_and_word(lists)
-        puts " > #{repo.blue}: #{count} new #{word}\n"
-        puts lists
+      commits_hash.each do |repo_name, commits|
+        count, word = retrieve_count_and_word(commits)
+        puts " > #{repo_name.blue}: #{count} new #{word}\n"
+        puts commits.map(&:message)
       end
-      nil
+
+      true
     end
 
     # returns an array to use slack attachments field
     # reference: https://api.slack.com/messaging/composing/layouts#building-attachments
     # @return [Hash] result
     def serialize_commits
-      message = @commits.map do |repo, lists|
-        count, word = retrieve_count_and_word(lists)
-        "*#{repo}*: #{count} new #{word}\n#{lists.join("\n")}"
+      message = commits_hash.map do |repo_name, commits|
+        count, word = retrieve_count_and_word(commits)
+        "*#{repo_name}*: #{count} new #{word}\n#{commits.map(&:message).join("\n")}"
       end.join("\n")
 
       {
@@ -56,9 +57,9 @@ module Ballantine
 
     private
 
-    # @param [Array<String>] lists
+    # @param [Array<Commit>] commits
     # @param [Array(Integer, String)] count, word
-    def retrieve_count_and_word(lists)
+    def retrieve_count_and_word(commits)
       count = lists.size
       word = count == 1 ? "commit" : "commits"
       [count, word]
