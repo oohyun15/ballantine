@@ -100,13 +100,13 @@ module Ballantine
     # @return [Boolean]
     def init_variables(target, source, **options)
       @send_type = options[TYPE_SLACK] ? TYPE_SLACK : TYPE_TERMINAL
+      Repository.send_type = @send_type
       @repo = Repository.find_or_create_by(
         path: Dir.pwd,
         remote_url: %x(git config --get remote.origin.url).chomp,
       )
 
       # init repo
-      Repository.send_type = @send_type
       repo.init_variables(target, source)
       true
     end
@@ -134,7 +134,7 @@ module Ballantine
 
       case send_type
       when TYPE_TERMINAL
-        puts "Check commits before #{repo.name.red} deployment. (#{target.cyan} <- #{source.cyan})".ljust(Repository::DEFAULT_LJUST + 44) + " #{url}/compare/#{from}...#{to}".gray
+        puts "Check commits before #{repo.name.red} deployment. (#{target.cyan} <- #{source.cyan})".ljust(Repository::DEFAULT_LJUST + 44) + " #{repo.url}/compare/#{repo.from.hash}...#{repo.to.hash}".gray
         puts "Author".yellow + ": #{number}"
         puts "Last commit".blue + ": #{last_commit}"
         authors.map(&:print_commits)
@@ -151,7 +151,7 @@ module Ballantine
         request.content_type = "application/json"
         request.body = JSON.dump({
           "text" => ":white_check_mark: *#{repo.name}* deployment request by <@#{actor}>" \
-            " (\`<#{repo.url}/tree/#{repo.from}|#{target}>\` <- \`<#{repo.url}/tree/#{repo.to}|#{source}>\` <#{repo.url}/compare/#{repo.from}...#{repo.to}|compare>)" \
+            " (\`<#{repo.url}/tree/#{repo.from.hash}|#{target}>\` <- \`<#{repo.url}/tree/#{repo.to.hash}|#{source}>\` <#{repo.url}/compare/#{repo.from.hash}...#{repo.to.hash}|compare>)" \
             "\n:technologist: Author: #{number}\nLast commit: #{last_commit}",
           "attachments" => messages,
         })

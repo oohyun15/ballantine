@@ -103,13 +103,13 @@ module Ballantine
         commits = retrieve_commits(author)
         next if commits.empty?
 
-        author.commits[name] = commits
+        author.commits_hash[name] = commits
         # TODO: append `commits` to `repo.commits`
       end
 
       if sub_repos.any?
         sub_repos.each do |sub_repo|
-          next if sub_repo.from == sub_repo.to
+          next if sub_repo.from.hash == sub_repo.to.hash
 
           Dir.chdir(sub_repo.path)
           sub_repo.check_commits
@@ -122,7 +122,7 @@ module Ballantine
 
     # @return [String]
     def print_last_commit
-      %x(git --no-pager log --reverse --format="#{check_format(ljust: DEFAULT_LJUST - 12)}" --abbrev=7 #{from}..#{to} -1).strip
+      %x(git --no-pager log --reverse --format="#{check_format(ljust: DEFAULT_LJUST - 12)}" --abbrev=7 #{from.hash}..#{to.hash} -1).strip
     end
 
     private
@@ -178,7 +178,7 @@ module Ballantine
 
     # @return [Array<Author>]
     def retrieve_authors
-      %x(git --no-pager log --pretty=format:"%an" #{from}..#{to})
+      %x(git --no-pager log --pretty=format:"%an" #{from.hash}..#{to.hash})
         .split("\n").uniq.sort
         .map { |name| Author.find_or_create_by(name:) }
     end
@@ -187,7 +187,7 @@ module Ballantine
     # @return [Array<Commit>]
     def retrieve_commits(author)
       results =
-        %x(git --no-pager log --reverse --no-merges --author="#{author.name}" --format="%h#{PARSER_TOKEN}#{format}" --abbrev=7 #{from}..#{to})
+        %x(git --no-pager log --reverse --no-merges --author="#{author.name}" --format="%h#{PARSER_TOKEN}#{format}" --abbrev=7 #{from.hash}..#{to.hash})
           .gsub('"', '\"')
           .gsub(/[\u0080-\u00ff]/, "")
           .split("\n")
