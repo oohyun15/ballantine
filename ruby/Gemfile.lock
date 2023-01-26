@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    ballantine (0.1.4.pre.beta1)
+    ballantine (0.1.4.pre.beta2)
       thor (~> 1.2.1)
 
 GEM
