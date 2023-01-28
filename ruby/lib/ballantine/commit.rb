@@ -8,13 +8,18 @@ module Ballantine
     class << self
       # @param [String] hash
       # @param [Repository] repo
-      # @return [Commit]
-      def find_or_create_by(hash:, repo:)
+      # @return [Commit, NilClass]
+      def find(hash:, repo:)
         @_collections = {} unless defined?(@_collections)
         index = "#{hash}-#{repo.name}"
-        return @_collections[index] unless @_collections[index].nil?
+        @_collections[index]
+      end
 
-        @_collections[index] = new(hash:, repo:)
+      # @param [String] hash
+      # @param [Repository] repo
+      # @return [Commit]
+      def find_or_create_by(hash:, repo:)
+        find(hash:, repo:) || @_collections[index] = new(hash:, repo:)
       end
     end
 

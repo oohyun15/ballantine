@@ -20,13 +20,17 @@ module Ballantine
 
     class << self
       # @param [String] path
+      # @return [Repository, NilClass]
+      def find(path:)
+        @_collections = {} unless defined?(@_collections)
+        @_collections[path]
+      end
+
+      # @param [String] path
       # @param [String] remote_url
       # @return [Repository]
       def find_or_create_by(path:, remote_url: nil)
-        @_collections = {} unless defined?(@_collections)
-        return @_collections[path] unless @_collections[path].nil?
-
-        @_collections[path] = new(path:, remote_url:)
+        find(path:) || @_collections[path] = new(path:, remote_url:)
       end
 
       # @return [Array<Repository>]
@@ -72,7 +76,7 @@ module Ballantine
         if sub_repos.any?
           %x(git ls-tree HEAD #{sub_repos.map(&:path).join(" ")}).split("\n").map do |line|
             _, _, sub_hash, sub_path = line.split(" ")
-            sub_repo = Repository.find_or_create_by(
+            sub_repo = Repository.find(
               path: path + "/" + sub_path,
             )
             sub_commit = Commit.find_or_create_by(
