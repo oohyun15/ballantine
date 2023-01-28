@@ -2,6 +2,8 @@
 
 module Ballantine
   class Author
+    include Printable
+
     attr_reader :name, :commits_hash
 
     class << self
@@ -33,8 +35,10 @@ module Ballantine
       puts "\n" + "@#{name}".green
       commits_hash.each do |repo_name, commits|
         count, word = retrieve_count_and_word(commits)
-        puts " > #{repo_name.blue}: #{count} new #{word}\n"
-        puts commits.map(&:message)
+        puts " > #{repo_name.blue}: #{count} new #{word}"
+        commits.each do |commit|
+          puts_r " - #{commit.hash.yellow} #{commit.subject}", commit.url.gray
+        end
       end
 
       true
@@ -42,11 +46,12 @@ module Ballantine
 
     # returns an array to use slack attachments field
     # reference: https://api.slack.com/messaging/composing/layouts#building-attachments
-    # @return [Hash] result
-    def serialize_commits
+    # @return [Hash]
+    def slack_message
       message = commits_hash.map do |repo_name, commits|
         count, word = retrieve_count_and_word(commits)
-        "*#{repo_name}*: #{count} new #{word}\n#{commits.map(&:message).join("\n")}"
+        "*#{repo_name}*: #{count} new #{word}\n" \
+          "#{commits.map(&:slack_message).join("\n")}"
       end.join("\n")
 
       {
