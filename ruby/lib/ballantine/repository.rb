@@ -115,11 +115,6 @@ module Ballantine
       true
     end
 
-    # @return [String]
-    def print_last_commit
-      %x(git --no-pager log --reverse --format="#{check_format}" --abbrev=7 #{from.hash}..#{to.hash} -1).strip
-    end
-
     private
 
     def conf; Config.instance end
