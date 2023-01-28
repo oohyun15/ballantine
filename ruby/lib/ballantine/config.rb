@@ -16,8 +16,8 @@ module Ballantine
       KEY_SLACK_WEBHOOK,
     ].freeze
 
-    attr_reader :env, :data, :loaded
-    attr_accessor :print_type
+    attr_reader :data, :loaded
+    attr_accessor :env, :print_type
 
     class << self
       # @note singleton method
@@ -29,8 +29,8 @@ module Ballantine
       end
     end
 
-    def initialize(env)
-      @env = env || ENV_LOCAL
+    def initialize
+      @env = ENV_LOCAL
       @data = {}
       @loaded = false
     end

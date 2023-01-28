@@ -31,9 +31,10 @@ module Ballantine
         raise NotAllowed, "Environment value must be unique."
       end
 
-      @env = Config::AVAILABLE_ENVIRONMENTS.find { |key| options[key] }
-      raise AssertionFailed, "Environment value must exist: #{@env}" if @env.nil?
+      env = Config::AVAILABLE_ENVIRONMENTS.find { |key| options[key] }
+      raise AssertionFailed, "Environment value must exist: #{env}" if env.nil?
 
+      conf.env = env
       value ? conf.set_data(key, value) : conf.print_data(key)
     end
 
@@ -67,7 +68,7 @@ module Ballantine
 
     private
 
-    def conf; Config.instance(@env) end
+    def conf; Config.instance end
 
     # @param [String] target
     # @param [String] source
