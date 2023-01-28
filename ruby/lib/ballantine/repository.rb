@@ -36,9 +36,6 @@ module Ballantine
 
         @_collections.values
       end
-
-      def send_type; @_send_type end
-      def send_type=(value); @_send_type = value end
     end
 
     # @param [String] path
@@ -127,9 +124,7 @@ module Ballantine
 
     private
 
-    def send_type
-      self.class.send_type
-    end
+    def conf; Config.instance end
 
     # @param [String] name
     # @return [String] hash
@@ -144,13 +139,13 @@ module Ballantine
     # @param [Integer] ljust
     # @return [String]
     def check_format(ljust: DEFAULT_LJUST)
-      case send_type
-      when CLI::TYPE_TERMINAL
+      case conf.print_type
+      when Config::TYPE_TERMINAL
         " - " + "%h".yellow + " %<(#{ljust})%s " + "#{url}/commit/%H".gray
-      when CLI::TYPE_SLACK
+      when Config::TYPE_SLACK
         "\\\`<#{url}/commit/%H|%h>\\\` %s - %an"
       else
-        raise AssertionFailed, "Unknown send type: #{send_type}"
+        raise AssertionFailed, "Unknown send type: #{conf.print_type}"
       end
     end
 

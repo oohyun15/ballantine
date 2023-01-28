@@ -2,10 +2,7 @@
 
 module Ballantine
   class CLI < Thor
-    TYPE_TERMINAL = "terminal"
-    TYPE_SLACK = "slack"
-
-    attr_reader :send_type, :repo
+    attr_reader :repo
 
     class << self
       def exit_on_failure?; exit(1) end
@@ -39,7 +36,7 @@ module Ballantine
     end
 
     desc "diff [TARGET] [SOURCE]", "Diff commits between TARGET and SOURCE"
-    option TYPE_SLACK, type: :boolean, aliases: "-s", default: false, desc: "Send to slack using slack webhook URL."
+    option Config::TYPE_SLACK, type: :boolean, aliases: "-s", default: false, desc: "Send to slack using slack webhook URL."
     def diff(target, source = %x(git rev-parse --abbrev-ref HEAD).chomp)
       # validate arguments
       validate(target, source, **options)
@@ -68,7 +65,7 @@ module Ballantine
 
     private
 
-    def conf; @conf ||= Config.new(@env) end
+    def conf; Config.instance(@env) end
 
     # @param [String] target
     # @param [String] source
@@ -87,7 +84,7 @@ module Ballantine
         raise NotAllowed, "ERROR: target(#{target}) and source(#{source}) can't be equal."
       end
 
-      if options[TYPE_SLACK] && !conf.get_data(Config::KEY_SLACK_WEBHOOK)
+      if options[Config::TYPE_SLACK] && !conf.get_data(Config::KEY_SLACK_WEBHOOK)
         raise NotAllowed, "ERROR: Can't find any slack webhook. Set slack webhook using `ballantine config --#{Config::ENV_LOCAL} slack_webhook [YOUR_WEBHOOK]'."
       end
 
@@ -99,8 +96,7 @@ module Ballantine
     # @param [Hash] options
     # @return [Boolean]
     def init_variables(target, source, **options)
-      @send_type = options[TYPE_SLACK] ? TYPE_SLACK : TYPE_TERMINAL
-      Repository.send_type = @send_type
+      conf.print_type = options[Config::TYPE_SLACK] ? Config::TYPE_SLACK : Config::TYPE_TERMINAL
       @repo = Repository.find_or_create_by(
         path: Dir.pwd,
         remote_url: %x(git config --get remote.origin.url).chomp,
@@ -132,13 +128,13 @@ module Ballantine
       number = authors.size
       last_commit = repo.print_last_commit
 
-      case send_type
-      when TYPE_TERMINAL
+      case conf.print_type
+      when Config::TYPE_TERMINAL
         puts "Check commits before #{repo.name.red} deployment. (#{target.cyan} <- #{source.cyan})".ljust(Repository::DEFAULT_LJUST + 44) + " #{repo.url}/compare/#{repo.from.hash}...#{repo.to.hash}".gray
         puts "Author".yellow + ": #{number}"
         puts "Last commit".blue + ": #{last_commit}"
         authors.map(&:print_commits)
-      when TYPE_SLACK
+      when Config::TYPE_SLACK
         # set message for each author
         messages = authors.map(&:serialize_commits)
         actor = %x(git config user.name).chomp
@@ -159,7 +155,7 @@ module Ballantine
         response = Net::HTTP.start(uri.hostname, uri.port, req_options) { |http| http.request(request) }
         puts response.message
       else
-        raise AssertionFailed, "Unknown send type: #{send_type}"
+        raise AssertionFailed, "Unknown send type: #{conf.print_type}"
       end
 
       true
