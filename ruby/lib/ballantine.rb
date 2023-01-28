@@ -9,6 +9,7 @@ require_relative "ballantine/author"
 require_relative "ballantine/repository"
 require_relative "ballantine/commit"
 require_relative "ballantine/cli"
+require_relative "ballantine/printable"
 
 module Ballantine
   class Error < StandardError; end
