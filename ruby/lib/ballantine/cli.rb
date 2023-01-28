@@ -2,6 +2,8 @@
 
 module Ballantine
   class CLI < Thor
+    include Printable
+
     attr_reader :repo
 
     class << self
@@ -126,17 +128,16 @@ module Ballantine
       end
 
       number = authors.size
-      last_commit = repo.print_last_commit
 
       case conf.print_type
       when Config::TYPE_TERMINAL
-        puts "Check commits before #{repo.name.red} deployment. (#{target.cyan} <- #{source.cyan})".ljust(Repository::DEFAULT_LJUST + 44) + " #{repo.url}/compare/#{repo.from.hash}...#{repo.to.hash}".gray
+        puts_r "Check commits before #{repo.name.red} deployment. (#{target.cyan} <- #{source.cyan})", "#{repo.url}/compare/#{repo.from.hash}...#{repo.to.hash}".gray
         puts "Author".yellow + ": #{number}"
-        puts "Last commit".blue + ": #{last_commit}"
+        puts_r "#{"Last commit".blue}: #{repo.to.hash.yellow} #{repo.to.subject}", repo.to.url.gray
         authors.map(&:print_commits)
       when Config::TYPE_SLACK
         # set message for each author
-        messages = authors.map(&:serialize_commits)
+        messages = authors.map(&:slack_message)
         actor = %x(git config user.name).chomp
 
         # send message to slack
@@ -148,14 +149,14 @@ module Ballantine
         request.body = JSON.dump({
           "text" => ":white_check_mark: *#{repo.name}* deployment request by <@#{actor}>" \
             " (\`<#{repo.url}/tree/#{repo.from.hash}|#{target}>\` <- \`<#{repo.url}/tree/#{repo.to.hash}|#{source}>\` <#{repo.url}/compare/#{repo.from.hash}...#{repo.to.hash}|compare>)" \
-            "\n:technologist: Author: #{number}\nLast commit: #{last_commit}",
+            "\n:technologist: Author: #{number}\nLast commit: #{repo.to.slack_message}",
           "attachments" => messages,
         })
         req_options = { use_ssl: uri.scheme == "https" }
         response = Net::HTTP.start(uri.hostname, uri.port, req_options) { |http| http.request(request) }
         puts response.message
       else
-        raise AssertionFailed, "Unknown send type: #{conf.print_type}"
+        raise AssertionFailed, "Unknown print type: #{conf.print_type}"
       end
 
       true

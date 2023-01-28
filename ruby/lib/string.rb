@@ -16,4 +16,6 @@ class String
   def yellow; "#{YELLOW}#{self}#{NC}" end
   def blue;   "#{BLUE}#{self}#{NC}"   end
   def cyan;   "#{CYAN}#{self}#{NC}"   end
+
+  def sanitize_colored; gsub(/\e\[\d+;?\d*m/, "") end
 end

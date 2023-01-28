@@ -13,10 +13,9 @@ module Ballantine
       '^ssh://git@(.+)/(.+)/(.+)\.git$',  # protocol: ssh   -> ssh://git@github.com/oohyun15/ballantine.git
     ].freeze
     FILE_GITMODULES = ".gitmodules"
-    DEFAULT_LJUST = 70
     PARSER_TOKEN = "!#!#"
 
-    attr_reader :name, :path, :owner, :url, :from, :to, :format # attributes
+    attr_reader :name, :path, :owner, :url, :from, :to # attributes
     attr_reader :main_repo, :sub_repos, :commits # associations
 
     class << self
@@ -49,7 +48,6 @@ module Ballantine
         break [str[2], str[3]] if str
       end
       @url = "https://github.com/#{owner}/#{name}"
-      @format = check_format
     end
 
     # @param [String] target
@@ -119,7 +117,7 @@ module Ballantine
 
     # @return [String]
     def print_last_commit
-      %x(git --no-pager log --reverse --format="#{check_format(ljust: DEFAULT_LJUST - 12)}" --abbrev=7 #{from.hash}..#{to.hash} -1).strip
+      %x(git --no-pager log --reverse --format="#{check_format}" --abbrev=7 #{from.hash}..#{to.hash} -1).strip
     end
 
     private
@@ -136,16 +134,15 @@ module Ballantine
       %x(git rev-list -n 1 #{name}).chomp[0...7]
     end
 
-    # @param [Integer] ljust
     # @return [String]
-    def check_format(ljust: DEFAULT_LJUST)
+    def check_format
       case conf.print_type
       when Config::TYPE_TERMINAL
         " - " + "%h".yellow + " %<(#{ljust})%s " + "#{url}/commit/%H".gray
       when Config::TYPE_SLACK
         "\\\`<#{url}/commit/%H|%h>\\\` %s - %an"
       else
-        raise AssertionFailed, "Unknown send type: #{conf.print_type}"
+        raise AssertionFailed, "Unknown print type: #{conf.print_type}"
       end
     end
 
@@ -182,18 +179,24 @@ module Ballantine
     # @param [Author] author
     # @return [Array<Commit>]
     def retrieve_commits(author)
+      command = <<~CMD.tr("\n", " ").strip
+        git --no-pager log --reverse --no-merges --author="#{author.name}"
+        --format="%h#{PARSER_TOKEN}%H#{PARSER_TOKEN}%s"
+        --abbrev=7 #{from.hash}..#{to.hash}
+      CMD
       results =
-        %x(git --no-pager log --reverse --no-merges --author="#{author.name}" --format="%h#{PARSER_TOKEN}#{format}" --abbrev=7 #{from.hash}..#{to.hash})
+        %x(#{command})
           .gsub('"', '\"')
           .gsub(/[\u0080-\u00ff]/, "")
           .split("\n")
 
       results.map do |result|
-        hash, message = result.split(PARSER_TOKEN)
+        hash, long_hash, subject = result.split(PARSER_TOKEN)
         Commit.find_or_create_by(
           hash: hash,
+          long_hash: long_hash,
+          subject: subject,
           repo: self,
-          message: message,
           author: author,
         )
       end
