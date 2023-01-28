@@ -11,21 +11,21 @@ module Ballantine
       # @return [Commit, NilClass]
       def find(hash:, repo:)
         @_collections = {} unless defined?(@_collections)
-        @_collections["#{hash}-#{repo.name}"]
+        @_collections["#{hash[...7]}-#{repo.name}"]
       end
 
       # @param [String] hash
       # @param [Repository] repo
       # @return [Commit]
       def find_or_create_by(hash:, repo:)
-        find(hash:, repo:) || @_collections["#{hash}-#{repo.name}"] = new(hash:, repo:)
+        find(hash:, repo:) || @_collections["#{hash[...7]}-#{repo.name}"] = new(hash:, repo:)
       end
     end
 
     # @param [String] hash
     # @param [Repository] repo
     def initialize(hash:, repo:)
-      @hash = hash
+      @hash = hash[...7]
       @repo = repo
     end
 
