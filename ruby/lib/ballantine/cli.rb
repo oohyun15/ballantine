@@ -53,8 +53,8 @@ module Ballantine
       # check commits
       check_commits(**options)
 
-      # send commits
-      send_commits(target, source, **options)
+      # print commits
+      print_commits(target, source, **options)
 
       exit(0)
     end
@@ -123,7 +123,7 @@ module Ballantine
     # @param [String] source
     # @param [Hash] options
     # @return [Boolean]
-    def send_commits(target, source, **options)
+    def print_commits(target, source, **options)
       authors = Author.all
       if authors.empty?
         raise ArgumentError, "ERROR: There is no commits between \"#{target}\" and \"#{source}\""
