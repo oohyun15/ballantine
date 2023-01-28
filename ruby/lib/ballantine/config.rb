@@ -2,21 +2,32 @@
 
 module Ballantine
   class Config
+    FILE_BALLANTINE_CONFIG = ".ballantine.json"
     ENV_LOCAL = "local"
     ENV_GLOBAL = "global"
+    TYPE_TERMINAL = "terminal"
+    TYPE_SLACK = "slack"
     AVAILABLE_ENVIRONMENTS = [
       ENV_LOCAL,
       ENV_GLOBAL,
     ].freeze
-
     KEY_SLACK_WEBHOOK = "slack_webhook"
     AVAILABLE_KEYS = [
       KEY_SLACK_WEBHOOK,
     ].freeze
 
-    FILE_BALLANTINE_CONFIG = ".ballantine.json"
-
     attr_reader :env, :data, :loaded
+    attr_accessor :print_type
+
+    class << self
+      # @note singleton method
+      # @return [Config]
+      def instance(...)
+        return @_instance if defined?(@_instance)
+
+        @_instance = new(...)
+      end
+    end
 
     def initialize(env)
       @env = env || ENV_LOCAL
