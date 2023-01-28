@@ -16,8 +16,11 @@ Gem::Specification.new do |spec|
   spec.add_dependency "thor", "~> 1.2.1"
   spec.add_development_dependency "yard", "~> 0.9.28"
 
-  spec.files = Dir["lib/ballantine.rb"]
-  spec.files += Dir["lib/string.rb"]
-  spec.files += Dir["lib/ballantine/*.rb"]
+  spec.files = Dir[
+    "lib/ballantine.rb",
+    "lib/string.rb",
+    "lib/printable.rb",
+    "lib/ballantine/*.rb",
+  ]
   spec.executables = ["ballantine"]
 end
