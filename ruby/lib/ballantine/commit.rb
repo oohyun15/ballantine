@@ -11,15 +11,14 @@ module Ballantine
       # @return [Commit, NilClass]
       def find(hash:, repo:)
         @_collections = {} unless defined?(@_collections)
-        index = "#{hash}-#{repo.name}"
-        @_collections[index]
+        @_collections["#{hash}-#{repo.name}"]
       end
 
       # @param [String] hash
       # @param [Repository] repo
       # @return [Commit]
       def find_or_create_by(hash:, repo:)
-        find(hash:, repo:) || @_collections[index] = new(hash:, repo:)
+        find(hash:, repo:) || @_collections["#{hash}-#{repo.name}"] = new(hash:, repo:)
       end
     end
 
