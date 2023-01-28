@@ -40,7 +40,7 @@ module Ballantine
 
     # @return [String]
     def slack_message
-      "\\\`<#{url}|#{hash}>\\\` #{subject} - #{author.name}"
+      "\`<#{url}|#{hash}>\` #{subject} - #{author.name}"
     end
   end
 end
