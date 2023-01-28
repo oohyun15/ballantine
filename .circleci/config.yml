@@ -8,11 +8,9 @@ jobs:
       - run:
           name: Build ruby version
           command: |
-            cd ruby
             gem install bundler
             gem build ballantine.gemspec
             gem install ballantine*.gem
-            cd ..
       - run:
           name: Run ballantine
           command: |
@@ -32,14 +30,12 @@ jobs:
       - run:
           name: bundle install
           command: |
-            cd ruby
             gem install bundler
             bundle config
             bundle check || bundle install
       - run:
           name: rspec
           command: |
-            cd ruby
             bundle exec rspec --format progress --format RspecJunitFormatter -o /tmp/test-results/rspec.xml
       - store_test_results:
           path: /tmp/test-results
