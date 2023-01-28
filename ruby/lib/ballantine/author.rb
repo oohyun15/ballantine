@@ -8,12 +8,16 @@ module Ballantine
 
     class << self
       # @param [String] name
-      # @return [Author] author
-      def find_or_create_by(name:)
+      # @return [Author, NilClass]
+      def find(name:)
         @_collections = {} unless defined?(@_collections)
-        return @_collections[name] unless @_collections[name].nil?
+        @_collections[name]
+      end
 
-        @_collections[name] = new(name:)
+      # @param [String] name
+      # @return [Author]
+      def find_or_create_by(name:)
+        find(name:) || @_collections[name] = new(name:)
       end
 
       # @return [Array<Author>] authors
