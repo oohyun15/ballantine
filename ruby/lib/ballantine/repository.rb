@@ -15,7 +15,7 @@ module Ballantine
     FILE_GITMODULES = ".gitmodules"
     PARSER_TOKEN = "!#!#"
 
-    attr_reader :name, :path, :owner, :url, :from, :to # attributes
+    attr_reader :name, :path, :owner, :from, :to # attributes
     attr_reader :main_repo, :sub_repos, :commits # associations
 
     class << self
@@ -47,8 +47,9 @@ module Ballantine
         str = remote_url.match(regex)
         break [str[2], str[3]] if str
       end
-      @url = "https://github.com/#{owner}/#{name}"
     end
+
+    def url; @url ||= "https://github.com/#{owner}/#{name}" end
 
     # @param [String] target
     # @param [String] source
@@ -189,10 +190,11 @@ module Ballantine
         hash, long_hash, subject = result.split(PARSER_TOKEN)
         Commit.find_or_create_by(
           hash: hash,
+          repo: self,
+        ).update(
+          author: author,
           long_hash: long_hash,
           subject: subject,
-          repo: self,
-          author: author,
         )
       end
     end
