@@ -13,7 +13,8 @@ module Printable
   # @param [String] msg_r
   # @return [Integer]
   def rjust_size(msg, msg_r)
-    cols - (msg.sanitize_colored.size + msg_r.sanitize_colored.size - msg_r.size)
+    sanitized = ->(str) { str.sanitize_colored.size + str.scan(/\p{Hangul}/).size }
+    cols - sanitized.call(msg) - sanitized.call(msg_r) + msg_r.size
   end
 
   # @return [Integer]
