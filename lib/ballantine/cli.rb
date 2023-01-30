@@ -132,7 +132,7 @@ module Ballantine
 
       case conf.print_type
       when Config::TYPE_TERMINAL
-        puts_r "Check commits before #{repo.name.red} deployment. (#{target.cyan} <- #{source.cyan})", "#{repo.url}/compare/#{repo.from.hash}...#{repo.to.hash}".gray
+        puts_r "Check commits before #{repo.name.red} deployment. (#{target.cyan}...#{source.cyan})", "#{repo.url}/compare/#{repo.from.hash}...#{repo.to.hash}".gray
         puts "Author".yellow + ": #{number}"
         puts_r "#{"Last commit".blue}: #{repo.to.hash.yellow} #{repo.to.subject}", repo.to.url.gray
         authors.map(&:print_commits)
@@ -149,7 +149,7 @@ module Ballantine
         request.content_type = "application/json"
         request.body = JSON.dump({
           "text" => ":white_check_mark: *#{repo.name}* deployment request by <@#{actor}>" \
-            " (\`<#{repo.url}/tree/#{repo.from.hash}|#{target}>\` <- \`<#{repo.url}/tree/#{repo.to.hash}|#{source}>\` <#{repo.url}/compare/#{repo.from.hash}...#{repo.to.hash}|compare>)" \
+            " (\`<#{repo.url}/tree/#{repo.from.hash}|#{target}>\`<#{repo.url}/compare/#{repo.from.hash}...#{repo.to.hash}|...>\`<#{repo.url}/tree/#{repo.to.hash}|#{source}>\`)" \
             "\n:technologist: Author: #{number}\nLast commit: #{repo.to.slack_message}",
           "attachments" => messages,
         })
