@@ -17,7 +17,7 @@ module Ballantine
     ].freeze
 
     attr_reader :data, :loaded
-    attr_accessor :env, :print_type
+    attr_accessor :env, :print_type, :verbose
 
     class << self
       # @note singleton method
@@ -33,6 +33,8 @@ module Ballantine
       @env = ENV_LOCAL
       @data = {}
       @loaded = false
+      @print_type = TYPE_TERMINAL
+      @verbose = false
     end
 
     # @param [Hash] options
@@ -96,6 +98,16 @@ module Ballantine
     def get_data(key, **options)
       load_file unless @loaded
       @data[key]
+    end
+
+    # @param [Binding] binding
+    # @return [NilClass]
+    def print_log(binding)
+      method = caller(1..1)[0][/`([^']*)'/, 1]
+      puts [
+        "#{binding.receiver.class.name}##{method}",
+        binding.receiver.method(method).parameters.map { |_, arg| arg }.map { |arg| "#{arg}:#{binding.local_variable_get(arg)}" }.join(" "),
+      ].join(" ")
     end
 
     private

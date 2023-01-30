@@ -22,8 +22,12 @@ module Ballantine
     end
 
     Config::AVAILABLE_ENVIRONMENTS.each { |env| option env, type: :boolean, default: false, desc: "Set envirment to `#{env}'." }
+    option "verbose", type: :boolean, default: false, desc: "Print a progress."
     desc "config [--env] [KEY] [VALUE]", "Set ballantine's configuration"
     def config(key = nil, value = nil)
+      conf.verbose = options["verbose"]
+      puts "$ ballantine config #{key} #{value}" if conf.verbose
+
       # check environment value
       if Config::AVAILABLE_ENVIRONMENTS.map { |key| !options[key] }.reduce(:&)
         raise NotAllowed, "Set environment value (#{Config::AVAILABLE_ENVIRONMENTS.map { |key| "`--#{key}'" }.join(", ")})"
@@ -38,14 +42,15 @@ module Ballantine
       value ? conf.set_data(key, value) : conf.print_data(key)
     end
 
-    desc "diff [TARGET] [SOURCE]", "Diff commits between TARGET and SOURCE"
+    option "verbose", type: :boolean, default: false, desc: "Print a progress."
     option Config::TYPE_SLACK, type: :boolean, aliases: "-s", default: false, desc: "Send to slack using slack webhook URL."
+    desc "diff [TARGET] [SOURCE]", "Diff commits between TARGET and SOURCE"
     def diff(target, source = %x(git rev-parse --abbrev-ref HEAD).chomp)
+      conf.verbose = options["verbose"]
+      puts "$ ballantine diff #{target} #{source}" if conf.verbose
+
       # validate arguments
       validate(target, source, **options)
-
-      # check commits are newest
-      system("git pull -f &> /dev/null")
 
       # init instance variables
       init_variables(target, source, **options)
@@ -55,8 +60,6 @@ module Ballantine
 
       # print commits
       print_commits(target, source, **options)
-
-      exit(0)
     end
 
     desc "version", "Display version information about ballntine"
@@ -75,6 +78,8 @@ module Ballantine
     # @param [Hash] options
     # @return [NilClass] nil
     def validate(target, source, **options)
+      conf.print_log(binding) if conf.verbose
+
       if Dir[".git"].empty?
         raise NotAllowed, "ERROR: There is no \".git\" in #{Dir.pwd}."
       end
@@ -99,6 +104,11 @@ module Ballantine
     # @param [Hash] options
     # @return [Boolean]
     def init_variables(target, source, **options)
+      conf.print_log(binding) if conf.verbose
+
+      # check commits are newest
+      system("git pull -f &> /dev/null")
+
       conf.print_type = options[Config::TYPE_SLACK] ? Config::TYPE_SLACK : Config::TYPE_TERMINAL
       @repo = Repository.find_or_create_by(
         path: Dir.pwd,
@@ -113,6 +123,8 @@ module Ballantine
     # @param [Hash] options
     # @return [Boolean]
     def check_commits(**options)
+      conf.print_log(binding) if conf.verbose
+
       repo.check_commits
 
       true
@@ -123,6 +135,8 @@ module Ballantine
     # @param [Hash] options
     # @return [Boolean]
     def print_commits(target, source, **options)
+      conf.print_log(binding) if conf.verbose
+
       authors = Author.all
       if authors.empty?
         raise ArgumentError, "ERROR: There is no commits between \"#{target}\" and \"#{source}\""
