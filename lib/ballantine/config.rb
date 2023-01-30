@@ -15,6 +15,7 @@ module Ballantine
     AVAILABLE_KEYS = [
       KEY_SLACK_WEBHOOK,
     ].freeze
+    AVAILABLE_PRINT_INSTANCE_VARIABLES = [:@name, :@from, :@to].freeze
 
     attr_reader :data, :loaded
     attr_accessor :env, :print_type, :verbose
@@ -104,9 +105,11 @@ module Ballantine
     # @return [NilClass]
     def print_log(binding)
       method = caller(1..1)[0][/`([^']*)'/, 1]
+
       puts [
         "#{binding.receiver.class.name}##{method}",
         binding.receiver.method(method).parameters.map { |_, arg| arg }.map { |arg| "#{arg}:#{binding.local_variable_get(arg)}" }.join(" "),
+        (binding.receiver.instance_variables & AVAILABLE_PRINT_INSTANCE_VARIABLES).map { |var| "#{var}:#{binding.receiver.instance_variable_get(var)}" }.join(" "),
       ].join("\t")
     end
 
