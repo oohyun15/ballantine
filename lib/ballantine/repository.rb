@@ -59,6 +59,8 @@ module Ballantine
     # @param [String] source
     # @return [Boolean]
     def init_variables(target, source)
+      conf.print_log(binding) if conf.verbose
+
       current_revision = %x(git rev-parse --abbrev-ref HEAD).chomp
 
       foo = lambda do |hash, context|
@@ -98,6 +100,8 @@ module Ballantine
 
     # @return [Boolean]
     def check_commits
+      conf.print_log(binding) if conf.verbose
+
       authors = retrieve_authors
       authors.each do |author|
         commits = retrieve_commits(author)
