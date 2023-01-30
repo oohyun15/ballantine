@@ -107,7 +107,7 @@ module Ballantine
       puts [
         "#{binding.receiver.class.name}##{method}",
         binding.receiver.method(method).parameters.map { |_, arg| arg }.map { |arg| "#{arg}:#{binding.local_variable_get(arg)}" }.join(" "),
-      ].join(" ")
+      ].join("\t")
     end
 
     private
