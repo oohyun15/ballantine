@@ -108,9 +108,9 @@ module Ballantine
 
       puts [
         "#{binding.receiver.class.name}##{method}",
+        (binding.receiver.instance_variables & AVAILABLE_PRINT_INSTANCE_VARIABLES).map { |var| "#{var}:#{binding.receiver.instance_variable_get(var).inspect}" }.join(" "),
         binding.receiver.method(method).parameters.map { |_, arg| arg }.map { |arg| "#{arg}:#{binding.local_variable_get(arg)}" }.join(" "),
-        (binding.receiver.instance_variables & AVAILABLE_PRINT_INSTANCE_VARIABLES).map { |var| "#{var}:#{binding.receiver.instance_variable_get(var)}" }.join(" "),
-      ].join("\t")
+      ].compact.join("\t")
     end
 
     private
