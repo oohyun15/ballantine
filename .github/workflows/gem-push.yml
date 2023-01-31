@@ -38,15 +38,17 @@ jobs:
     #     gem push *.gem
     #   env:
     #     GEM_HOST_API_KEY: "${{secrets.RUBYGEMS_AUTH_TOKEN}}"
-    - name: Publish to Homebrew
+    - name: Checkout to Homebrew
       uses: actions/checkout@v3
       with:
         repository: oohyun15/homebrew-ballantine
         ref: main
     - name: Publish to Homebrew
       run: |
-        SHA256=$(curl -sL ${URL}${TAG}.tar.gz | shasum -a 256 | cut -d " " -f 1)
+        git config --global user.name oohyun15
+        git config --global user.email sakiss4774@gmail.com
 
+        SHA256=$(curl -sL ${URL}${TAG}.tar.gz | shasum -a 256 | cut -d " " -f 1)
         sed -i -e "s#${URL}.*\.tar\.gz#${URL}${TAG}\.tar\.gz#g" ${FORMULA_FILE}
         sed -i -e "s#sha256 \".*\"#sha256 \"${SHA256}\"#g" ${FORMULA_FILE}
         cat ${FORMULA_FILE}
