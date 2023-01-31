@@ -45,6 +45,8 @@ jobs:
         git clone ${HOMEBREW_URL}
         cd ${HOMEBREW_DIRECTORY}
         git checkout ${HOMEBREW_BRANCH}
+        git config --global user.email ${GITHUB_EMAIL}
+        git config --global user.name ${GITHUB_NAME}
 
         sed -i -e "s#${URL}.*\.tar\.gz#${URL}${TAG}\.tar\.gz#g" ${FORMULA_FILE}
         sed -i -e "s#sha256 \".*\"#sha256 \"${SHA256}\"#g" ${FORMULA_FILE}
@@ -56,6 +58,8 @@ jobs:
       env:
         URL: "${{ github.server_url }}/${{ github.repository }}/archive/refs/tags/"
         TAG: "${{ github.ref_name }}"
+        GITHUB_EMAIL = "sakiss4774@gmail.com"
+        GITHUB_NAME = "oohyun15"
         HOMEBREW_URL: "https://github.com/oohyun15/homebrew-ballantine.git"
         HOMEBREW_DIRECTORY: "homebrew-ballantine"
         HOMEBREW_BRANCH: "main"
