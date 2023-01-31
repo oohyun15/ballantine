@@ -43,7 +43,6 @@ jobs:
       with:
         repository: "${GITHUB_NAME}/${HOMEBREW_REPOSITORY}"
         ref: "${HOMEBREW_BRANCH}"
-        path: "${HOMEBREW_REPOSITORY}"
     - run: |
         SHA256=$(curl -sL ${URL}${TAG}.tar.gz | shasum -a 256 | cut -d " " -f 1)
         git checkout ${HOMEBREW_BRANCH}
@@ -60,6 +59,5 @@ jobs:
         TAG: "${{ github.ref_name }}"
         GITHUB_NAME: "oohyun15"
         HOMEBREW_REPOSITORY: "homebrew-ballantine"
-        HOMEBREW_URL: "git@github.com:${GITHUB_NAME}/${HOMEBREW_REPOSITORY}.git"
         HOMEBREW_BRANCH: "main"
         FORMULA_FILE: "Formula/ballantine.rb"
