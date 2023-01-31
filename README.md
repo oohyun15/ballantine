@@ -2,11 +2,11 @@
 
 **Ballantine** helps you describe your commits easier and prettier from cli & slack.
 
-![image](https://user-images.githubusercontent.com/52606560/189166573-d2f219e3-e9a0-4532-a4ea-7bee40f5e8e8.png)
+![image](https://user-images.githubusercontent.com/52606560/215847624-ee8a7262-69f9-4278-8416-a346f88c2594.png)
 
-or print commits to slack channel using slack option.
+or send commits to slack channel using slack option (`--slack`).
 
-![image](https://user-images.githubusercontent.com/52606560/180467424-de1e4efd-7016-472e-b376-b6341cf78ab6.png)
+![image](https://user-images.githubusercontent.com/52606560/215847055-16a71030-f24a-42cd-bf76-78d5ee483dc7.png)
 
 ## Getting Started
 
@@ -42,6 +42,9 @@ $ ballantine init
 # return ballantine command lines
 $ ballantine
 
+# return ballantine configuration
+$ ballantine config
+
 # return commits between production and feature/task-1 branch
 $ ballantine diff production feature/task-1
 
@@ -49,10 +52,10 @@ $ ballantine diff production feature/task-1
 $ ballantine diff defaf88 a39aa43
 
 # return commits to slack between production and beta
-$ ballantine diff production beta -s
+$ ballantine diff production beta --slack
 
-# return ballantine configuration
-$ ballantine config
+# return ballantine [COMMAND] options
+$ ballantine help diff
 ```
 
 ### update
