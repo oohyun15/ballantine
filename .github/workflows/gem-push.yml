@@ -39,14 +39,14 @@ jobs:
     #   env:
     #     GEM_HOST_API_KEY: "${{secrets.RUBYGEMS_AUTH_TOKEN}}"
     - name: Publish to Homebrew
-      run: |
-        cd ~
+      uses: actions/checkout@v3
+      with:
+        repository: "${GITHUB_NAME}/${HOMEBREW_REPOSITORY}"
+        ref: "${HOMEBREW_BRANCH}"
+        path: "${HOMEBREW_REPOSITORY}"
+    - run: |
         SHA256=$(curl -sL ${URL}${TAG}.tar.gz | shasum -a 256 | cut -d " " -f 1)
-        git clone ${HOMEBREW_URL}
-        cd ${HOMEBREW_REPOSITORY}
         git checkout ${HOMEBREW_BRANCH}
-        git config --global user.email "${GITHUB_EMAIL}"
-        git config --global user.name "${GITHUB_NAME}"
 
         sed -i -e "s#${URL}.*\.tar\.gz#${URL}${TAG}\.tar\.gz#g" ${FORMULA_FILE}
         sed -i -e "s#sha256 \".*\"#sha256 \"${SHA256}\"#g" ${FORMULA_FILE}
@@ -58,7 +58,6 @@ jobs:
       env:
         URL: "${{ github.server_url }}/${{ github.repository }}/archive/refs/tags/"
         TAG: "${{ github.ref_name }}"
-        GITHUB_EMAIL: "sakiss4774@gmail.com"
         GITHUB_NAME: "oohyun15"
         HOMEBREW_REPOSITORY: "homebrew-ballantine"
         HOMEBREW_URL: "git@github.com:${GITHUB_NAME}/${HOMEBREW_REPOSITORY}.git"
