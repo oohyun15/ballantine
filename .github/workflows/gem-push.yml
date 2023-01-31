@@ -41,13 +41,13 @@ jobs:
     - name: Publish to Homebrew
       run: |
         cd ~
-        local sha256=$(curl -sL ${URL}${TAG}.tar.gz | shasum -a 256 | cut -d " " -f 1)
+        SHA256=$(curl -sL ${URL}${TAG}.tar.gz | shasum -a 256 | cut -d " " -f 1)
         git clone ${HOMEBREW_URL}
         cd ${HOMEBREW_DIRECTORY}
         git checkout ${HOMEBREW_BRANCH}
 
         sed -i -e "s#${URL}.*\.tar\.gz#${URL}${TAG}\.tar\.gz#g" ${FORMULA_FILE}
-        sed -i -e "s#sha256 \".*\"#sha256 \"${sha256}\"#g" ${FORMULA_FILE}
+        sed -i -e "s#sha256 \".*\"#sha256 \"${SHA256}\"#g" ${FORMULA_FILE}
         cat ${FORMULA_FILE}
 
         git add ${FORMULA_FILE}
