@@ -38,3 +38,24 @@ jobs:
         gem push *.gem
       env:
         GEM_HOST_API_KEY: "${{secrets.RUBYGEMS_AUTH_TOKEN}}"
+    - name: Publish to Homebrew
+      run: |
+        local sha256=$(curl -sL ${URL}${TAG}.tar.gz | shasum -a 256 | cut -d " " -f 1)
+        git clone ${HOMEBREW_URL}
+        cd ${HOMEBREW_DIRECTORY}
+        git checkout ${HOMEBREW_BRANCH}
+
+        sed -i -e "s#${URL}.*\.tar\.gz#${URL}${TAG}\.tar\.gz#g" ${FORMULA_FILE}
+        sed -i -e "s#sha256 \".*\"#sha256 \"${sha256}\"#g" ${FORMULA_FILE}
+        cat ${FORMULA_FILE}
+
+        git add ${FORMULA_FILE}
+        git commit -m ":arrow_up: Upgrade to ${TAG}"
+        git push origin ${HOMEBREW_BRANCH}
+      env:
+        URL: "${{ github.server_url }}/${{ github.repository }}/archive/refs/tags/"
+        TAG: "${{ github.ref_name }}"
+        HOMEBREW_URL: "https://github.com/oohyun15/homebrew-ballantine.git"
+        HOMEBREW_DIRECTORY: "homebrew-ballantine"
+        HOMEBREW_BRANCH: "main"
+        FORMULA_FILE: "Formula/ballantine.rb"
