@@ -43,10 +43,10 @@ jobs:
         cd ~
         SHA256=$(curl -sL ${URL}${TAG}.tar.gz | shasum -a 256 | cut -d " " -f 1)
         git clone ${HOMEBREW_URL}
-        cd ${HOMEBREW_DIRECTORY}
+        cd ${HOMEBREW_REPOSITORY}
         git checkout ${HOMEBREW_BRANCH}
-        git config --global user.email ${GITHUB_EMAIL}
-        git config --global user.name ${GITHUB_NAME}
+        git config --global user.email "${GITHUB_EMAIL}"
+        git config --global user.name "${GITHUB_NAME}"
 
         sed -i -e "s#${URL}.*\.tar\.gz#${URL}${TAG}\.tar\.gz#g" ${FORMULA_FILE}
         sed -i -e "s#sha256 \".*\"#sha256 \"${SHA256}\"#g" ${FORMULA_FILE}
@@ -60,7 +60,7 @@ jobs:
         TAG: "${{ github.ref_name }}"
         GITHUB_EMAIL: "sakiss4774@gmail.com"
         GITHUB_NAME: "oohyun15"
-        HOMEBREW_URL: "https://github.com/oohyun15/homebrew-ballantine.git"
-        HOMEBREW_DIRECTORY: "homebrew-ballantine"
+        HOMEBREW_REPOSITORY: "homebrew-ballantine"
+        HOMEBREW_URL: "git@github.com:${GITHUB_NAME}/${HOMEBREW_REPOSITORY}.git"
         HOMEBREW_BRANCH: "main"
         FORMULA_FILE: "Formula/ballantine.rb"
