@@ -41,11 +41,11 @@ jobs:
     - name: Publish to Homebrew
       uses: actions/checkout@v3
       with:
-        repository: "${GITHUB_NAME}/${HOMEBREW_REPOSITORY}"
-        ref: "${HOMEBREW_BRANCH}"
-    - run: |
+        repository: oohyun15/homebrew-ballantine
+        ref: main
+    - name: Publish to Homebrew
+      run: |
         SHA256=$(curl -sL ${URL}${TAG}.tar.gz | shasum -a 256 | cut -d " " -f 1)
-        git checkout ${HOMEBREW_BRANCH}
 
         sed -i -e "s#${URL}.*\.tar\.gz#${URL}${TAG}\.tar\.gz#g" ${FORMULA_FILE}
         sed -i -e "s#sha256 \".*\"#sha256 \"${SHA256}\"#g" ${FORMULA_FILE}
@@ -53,11 +53,8 @@ jobs:
 
         git add ${FORMULA_FILE}
         git commit -m ":arrow_up: Upgrade to ${TAG}"
-        git push origin ${HOMEBREW_BRANCH}
+        git push
       env:
         URL: "${{ github.server_url }}/${{ github.repository }}/archive/refs/tags/"
         TAG: "${{ github.ref_name }}"
-        GITHUB_NAME: "oohyun15"
-        HOMEBREW_REPOSITORY: "homebrew-ballantine"
-        HOMEBREW_BRANCH: "main"
         FORMULA_FILE: "Formula/ballantine.rb"
