@@ -40,6 +40,7 @@ jobs:
         GEM_HOST_API_KEY: "${{secrets.RUBYGEMS_AUTH_TOKEN}}"
     - name: Publish to Homebrew
       run: |
+        cd ~
         local sha256=$(curl -sL ${URL}${TAG}.tar.gz | shasum -a 256 | cut -d " " -f 1)
         git clone ${HOMEBREW_URL}
         cd ${HOMEBREW_DIRECTORY}
