@@ -58,8 +58,8 @@ jobs:
       env:
         URL: "${{ github.server_url }}/${{ github.repository }}/archive/refs/tags/"
         TAG: "${{ github.ref_name }}"
-        GITHUB_EMAIL = "sakiss4774@gmail.com"
-        GITHUB_NAME = "oohyun15"
+        GITHUB_EMAIL: "sakiss4774@gmail.com"
+        GITHUB_NAME: "oohyun15"
         HOMEBREW_URL: "https://github.com/oohyun15/homebrew-ballantine.git"
         HOMEBREW_DIRECTORY: "homebrew-ballantine"
         HOMEBREW_BRANCH: "main"
