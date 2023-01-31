@@ -44,6 +44,7 @@ jobs:
         repository: oohyun15/homebrew-ballantine
         ref: main
         token: ${{ secrets.BALLANTINE_PUBLISHER }}
+        persist-credentials: false
     - name: Publish to Homebrew
       run: |
         git config --global user.name oohyun15
