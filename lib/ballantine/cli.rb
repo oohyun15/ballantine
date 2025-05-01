@@ -6,9 +6,6 @@ module Ballantine
 
     attr_reader :repo
 
-    # @return [Array<String>]
-    attr_reader :uncommitted
-
     class << self
       def exit_on_failure? = exit(1)
     end
@@ -54,22 +51,22 @@ module Ballantine
       Config.instance.verbose = options["verbose"]
       puts "$ ballantine diff #{target} #{source}" if Config.instance.verbose
 
+      # retrieve uncommitted files
+      uncommitted = retrieve_uncommitted
+
       # validate arguments
-      validate(target, source, **options)
+      validate(target, source, uncommitted, **options)
 
-      # init instance variables
-      init_variables(target, source, **options)
+      with_stash(uncommitted) do
+        # init instance variables
+        init_variables(target, source, **options)
 
-      # check commits
-      check_commits
+        # check commits
+        check_commits
 
-      # print commits
-      print_commits(target, source)
-
-      # restore stash
-      restore_stash if @uncommitted.any?
-
-      true
+        # print commits
+        print_commits(target, source)
+      end
     end
 
     desc "version", "Display version information about ballntine"
@@ -83,19 +80,16 @@ module Ballantine
 
     # @param [String] target
     # @param [String] source
+    # @param [Array<String>] uncommitted
     # @param [Hash] options
     # @return [NilClass] nil
-    def validate(target, source, **options)
+    def validate(target, source, uncommitted, **options)
       if Dir[".git"].empty?
         raise NotAllowed, "ERROR: There is no \".git\" in #{Dir.pwd}."
       end
 
-      if (@uncommitted = %x(git diff HEAD --name-only).split("\n")).any?
-        if Config.instance.with_stash?
-          save_stash
-        else
-          raise NotAllowed, "ERROR: Uncommitted file exists. stash or commit uncommitted files.\n#{@uncommitted.join("\n")}"
-        end
+      if uncommitted.any? && Config.instance.raise_uncommitted?
+        raise NotAllowed, "ERROR: Uncommitted file exists. stash or commit uncommitted files.\n#{uncommitted.join("\n")}"
       end
 
       if target == source
@@ -176,6 +170,23 @@ module Ballantine
       end
 
       true
+    end
+
+    # @param [Array<String>] uncommitted
+    # @return [Boolean]
+    def with_stash(uncommitted)
+      if uncommitted.any? && !Config.instance.raise_uncommitted?
+        save_stash
+        yield
+        restore_stash
+      else
+        yield
+      end
+    end
+
+    # @return [Array<String>]
+    def retrieve_uncommitted
+      %x(git diff HEAD --name-only).split("\n")
     end
 
     # @return [Boolean]

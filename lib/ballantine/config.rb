@@ -12,10 +12,10 @@ module Ballantine
       ENV_GLOBAL,
     ].freeze
     KEY_SLACK_WEBHOOK = "slack_webhook"
-    KEY_WITH_STASH = "with_stash"
+    KEY_RAISE_UNCOMMITTED = "raise_uncommitted"
     AVAILABLE_KEYS = [
       KEY_SLACK_WEBHOOK,
-      KEY_WITH_STASH,
+      KEY_RAISE_UNCOMMITTED,
     ].freeze
     AVAILABLE_PRINT_INSTANCE_VARIABLES = [:@name, :@from, :@to].freeze
 
@@ -99,7 +99,7 @@ module Ballantine
     end
 
     # @return [Boolean]
-    def with_stash? = get_data(KEY_WITH_STASH)
+    def raise_uncommitted? = get_data(KEY_RAISE_UNCOMMITTED)
 
     private
 
@@ -107,7 +107,7 @@ module Ballantine
 
     def sanitize_value(key, value)
       case key
-      when KEY_WITH_STASH then value == true || value == "true"
+      when KEY_RAISE_UNCOMMITTED then value == true || value == "true"
       else value
       end
     end
