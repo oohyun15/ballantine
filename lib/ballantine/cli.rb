@@ -182,6 +182,7 @@ module Ballantine
       else
         yield
       end
+      true
     end
 
     # @return [Array<String>]
