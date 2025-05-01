@@ -89,7 +89,7 @@ module Ballantine
     # @return [Stirng] value
     def set_data(key, value, **options)
       load_file unless @loaded
-
+      raise InvalidParameter, "Key must be within #{AVAILABLE_KEYS}" unless AVAILABLE_KEYS.include?(key)
       @data[key] = value
       File.write(file_path, JSON.dump(@data))
       value
