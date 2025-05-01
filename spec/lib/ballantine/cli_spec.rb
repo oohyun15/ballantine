@@ -3,15 +3,15 @@
 require "spec_helper"
 
 describe Ballantine::CLI do
-  before(:each) do
-    @cli = Ballantine::CLI.new
+  before do
+    @cli = described_class.new
   end
 
   context "init" do
     let(:file_name) { Ballantine::Config::FILE_BALLANTINE_CONFIG }
     let(:file_path) { "./#{file_name}" }
 
-    after(:each) { File.delete(file_path) }
+    after { File.delete(file_path) }
 
     it "returns ballantine config file" do
       expect(@cli.init).to be_truthy
@@ -20,7 +20,7 @@ describe Ballantine::CLI do
     end
 
     context "already init" do
-      before(:each) { @cli.init }
+      before { @cli.init }
 
       it "raises error" do
         expect { @cli.init }.to raise_error(Ballantine::NotAllowed) do |e|
@@ -29,7 +29,7 @@ describe Ballantine::CLI do
       end
 
       context "with force option" do
-        before(:each) { @cli.options = { "force" => true }.freeze }
+        before { @cli.options = { "force" => true }.freeze }
 
         it "returns ballantine config file" do
           expect(@cli.init).to be_truthy
