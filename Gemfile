@@ -12,6 +12,7 @@ group :development, :test do
   gem "pry"
   gem "pry-byebug"
   gem "pry-doc"
+  gem "brakeman", require: false
 end
 
 group :test do
