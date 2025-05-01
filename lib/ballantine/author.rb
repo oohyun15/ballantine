@@ -36,8 +36,6 @@ module Ballantine
 
     # @return [Boolean]
     def print_commits
-      Config.instance.print_log(binding) if Config.instance.verbose
-
       puts "\n" + "@#{name}".green
       commits_hash.each do |repo_name, commits|
         count, word = retrieve_count_and_word(commits)
@@ -54,8 +52,6 @@ module Ballantine
     # reference: https://api.slack.com/messaging/composing/layouts#building-attachments
     # @return [Hash]
     def slack_message
-      Config.instance.print_log(binding) if Config.instance.verbose
-
       message = commits_hash.map do |repo_name, commits|
         count, word = retrieve_count_and_word(commits)
         "*#{repo_name}*: #{count} new #{word}\n" \
