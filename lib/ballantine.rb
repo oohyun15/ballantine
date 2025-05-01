@@ -12,7 +12,11 @@ require_relative "ballantine/commit"
 require_relative "ballantine/cli"
 
 module Ballantine
-  class Error < StandardError; end
+  class Error < StandardError
+    # @return [Array<String>, NilClass]
+    def backtrace = Config.instance.verbose ? super : nil
+  end
+
   class NotAllowed < Error; end
   class InvalidParameter < Error; end
   class AssertionFailed < Error; end
