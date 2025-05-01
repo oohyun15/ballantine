@@ -8,6 +8,7 @@ gemspec
 gem "rake", "~> 13.0"
 
 group :development, :test do
+  gem "irb"
   gem "pry"
   gem "pry-byebug"
   gem "pry-doc"
