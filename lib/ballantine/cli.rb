@@ -56,10 +56,10 @@ module Ballantine
       init_variables(target, source, **options)
 
       # check commits
-      check_commits(**options)
+      check_commits
 
       # print commits
-      print_commits(target, source, **options)
+      print_commits(target, source)
     end
 
     desc "version", "Display version information about ballntine"
@@ -120,9 +120,8 @@ module Ballantine
       true
     end
 
-    # @param [Hash] options
     # @return [Boolean]
-    def check_commits(**options)
+    def check_commits
       conf.print_log(binding) if conf.verbose
 
       repo.check_commits
@@ -132,9 +131,8 @@ module Ballantine
 
     # @param [String] target
     # @param [String] source
-    # @param [Hash] options
     # @return [Boolean]
-    def print_commits(target, source, **options)
+    def print_commits(target, source)
       conf.print_log(binding) if conf.verbose
 
       authors = Author.all
