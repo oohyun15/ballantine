@@ -103,6 +103,9 @@ module Ballantine
       @data[key]
     end
 
+    # @return [Boolean]
+    def stash_uncommitted? = !!get_data(KEY_STASH_UNCOMMITTED)
+
     # @param [Binding] binding
     # @return [NilClass]
     def print_log(binding)
