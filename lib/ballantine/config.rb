@@ -44,8 +44,7 @@ module Ballantine
     # @return [Boolean] result
     def init_file(**options)
       raise NotAllowed, "#{FILE_BALLANTINE_CONFIG} already exists." if Dir[file_path].any? && !options[:force]
-
-      File.write(file_path, {})
+      File.write(file_path, JSON.dump(AVAILABLE_KEYS.map { |key| [key, nil] }.to_h))
       @loaded = false
     end
 
