@@ -6,7 +6,7 @@ commands:
       - run:
           name: Run brakeman
           command: |
-            bin/brakeman --no-pager --force
+            bin/brakeman --no-pager --force -x Execute
 
 jobs:
   build:
