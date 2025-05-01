@@ -14,6 +14,7 @@ Gem::Specification.new do |spec|
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.1"
   spec.add_dependency "thor", "~> 1.2.1"
+  spec.add_dependency "reline"
   spec.add_development_dependency "yard", "~> 0.9.28"
 
   spec.files = Dir[
