@@ -1,13 +1,15 @@
 PATH
   remote: .
   specs:
-    ballantine (0.1.4)
+    ballantine (0.1.5.pre.rc1)
       reline
       thor (~> 1.2.1)
 
 GEM
   remote: https://rubygems.org/
   specs:
+    brakeman (7.0.2)
+      racc
     byebug (12.0.0)
     coderay (1.1.3)
     date (3.4.1)
@@ -33,6 +35,7 @@ GEM
     psych (5.2.3)
       date
       stringio
+    racc (1.8.1)
     rake (13.2.1)
     rdoc (6.13.1)
       psych (>= 4.0.0)
@@ -62,6 +65,7 @@ PLATFORMS
 
 DEPENDENCIES
   ballantine!
+  brakeman
   irb
   pry
   pry-byebug
