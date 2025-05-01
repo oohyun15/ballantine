@@ -1,4 +1,13 @@
 version: 2.1
+
+commands:
+  scan-common-security-vulnerabilities:
+    steps:
+      - run:
+          name: Run brakeman
+          command: |
+            bin/brakeman --no-pager --force
+
 jobs:
   build:
     docker:
@@ -31,6 +40,7 @@ jobs:
             gem install bundler
             bundle config
             bundle check || bundle install
+      - scan-common-security-vulnerabilities
       - run:
           name: rspec
           command: |
