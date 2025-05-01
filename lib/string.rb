@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# @override
+# extension for strings
 class String
   NC     = "\e[0m"
   GRAY   = "\e[1;30m"
