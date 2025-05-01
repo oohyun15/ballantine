@@ -40,17 +40,16 @@ module Ballantine
       @verbose = false
     end
 
-    # @param [Hash] options
+    # @param [Boolean] force
     # @return [Boolean] result
-    def init_file(**options)
-      raise NotAllowed, "#{FILE_BALLANTINE_CONFIG} already exists." if Dir[file_path].any? && !options[:force]
+    def init_file(force: false)
+      raise NotAllowed, "#{FILE_BALLANTINE_CONFIG} already exists." if Dir[file_path].any? && !force
       File.write(file_path, JSON.pretty_generate(AVAILABLE_KEYS.map { |key| [key, nil] }.to_h))
       @loaded = false
     end
 
-    # @param [Hash] options
     # @return [Boolean] result
-    def load_file(**options)
+    def load_file
       return false if @loaded
       raise NotAllowed, "Can't find #{FILE_BALLANTINE_CONFIG}" if Dir[file_path].empty?
 
@@ -64,9 +63,8 @@ module Ballantine
     end
 
     # @param [String] key
-    # @param [Hash] options
     # @return [Boolean] result
-    def print_data(key, **options)
+    def print_data(key)
       load_file unless @loaded
 
       if key
@@ -84,9 +82,8 @@ module Ballantine
 
     # @param [String] key
     # @param [String] value
-    # @param [Hash] options
     # @return [Stirng] value
-    def set_data(key, value, **options)
+    def set_data(key, value)
       load_file unless @loaded
       raise InvalidParameter, "Key must be within #{AVAILABLE_KEYS}" unless AVAILABLE_KEYS.include?(key)
       @data[key] = value
@@ -95,9 +92,8 @@ module Ballantine
     end
 
     # @param [String] key
-    # @param [Hash] options
     # @return [Stirng] value
-    def get_data(key, **options)
+    def get_data(key)
       load_file unless @loaded
       @data[key]
     end
