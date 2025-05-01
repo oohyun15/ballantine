@@ -44,7 +44,7 @@ module Ballantine
     # @return [Boolean] result
     def init_file(**options)
       raise NotAllowed, "#{FILE_BALLANTINE_CONFIG} already exists." if Dir[file_path].any? && !options[:force]
-      File.write(file_path, JSON.dump(AVAILABLE_KEYS.map { |key| [key, nil] }.to_h))
+      File.write(file_path, JSON.pretty_generate(AVAILABLE_KEYS.map { |key| [key, nil] }.to_h))
       @loaded = false
     end
 
@@ -90,7 +90,7 @@ module Ballantine
       load_file unless @loaded
       raise InvalidParameter, "Key must be within #{AVAILABLE_KEYS}" unless AVAILABLE_KEYS.include?(key)
       @data[key] = value
-      File.write(file_path, JSON.dump(@data))
+      File.write(file_path, JSON.pretty_generate(@data))
       value
     end
 
