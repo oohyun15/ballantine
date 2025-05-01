@@ -14,7 +14,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Set up Ruby 3.4.3
-      uses: actions/setup-ruby@v1
+      uses: ruby/setup-ruby@v1
       with:
         ruby-version: "3.4.3"
     - name: Publish to GPR
@@ -39,7 +39,7 @@ jobs:
       env:
         GEM_HOST_API_KEY: "${{secrets.RUBYGEMS_AUTH_TOKEN}}"
     - name: Checkout to Homebrew
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: oohyun15/homebrew-ballantine
         ref: main
