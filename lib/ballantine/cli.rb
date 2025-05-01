@@ -7,7 +7,7 @@ module Ballantine
     attr_reader :repo
 
     class << self
-      def exit_on_failure?; exit(1) end
+      def exit_on_failure? = exit(1)
     end
 
     package_name "Ballantine"
@@ -71,7 +71,7 @@ module Ballantine
 
     private
 
-    def conf; Config.instance end
+    def conf = Config.instance
 
     # @param [String] target
     # @param [String] source
