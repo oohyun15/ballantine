@@ -17,7 +17,6 @@ module Ballantine
       KEY_SLACK_WEBHOOK,
       KEY_RAISE_UNCOMMITTED,
     ].freeze
-    AVAILABLE_PRINT_INSTANCE_VARIABLES = [:@name, :@from, :@to].freeze
 
     attr_reader :data, :loaded
     attr_accessor :env, :print_type, :verbose
