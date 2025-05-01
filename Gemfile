@@ -8,11 +8,11 @@ gemspec
 gem "rake", "~> 13.0"
 
 group :development, :test do
+  gem "brakeman", require: false
   gem "irb"
   gem "pry"
   gem "pry-byebug"
   gem "pry-doc"
-  gem "brakeman", require: false
 end
 
 group :test do
