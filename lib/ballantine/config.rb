@@ -101,18 +101,6 @@ module Ballantine
     # @return [Boolean]
     def with_stash? = get_data(KEY_WITH_STASH)
 
-    # @param [Binding] binding
-    # @return [NilClass]
-    def print_log(binding)
-      method = caller(1..1)[0][/`([^']*)'/, 1]
-
-      puts [
-        "#{binding.receiver.class.name}##{method}",
-        (binding.receiver.instance_variables & AVAILABLE_PRINT_INSTANCE_VARIABLES).map { |var| "#{var}:#{binding.receiver.instance_variable_get(var).inspect}" }.join(" "),
-        binding.receiver.method(method).parameters.map { |_, arg| arg }.map { |arg| "#{arg}:#{binding.local_variable_get(arg)}" }.join(" "),
-      ].compact.join("\t")
-    end
-
     private
 
     def empty_data = AVAILABLE_KEYS.map { |key| [key, nil] }.to_h

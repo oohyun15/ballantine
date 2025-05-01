@@ -86,8 +86,6 @@ module Ballantine
     # @param [Hash] options
     # @return [NilClass] nil
     def validate(target, source, **options)
-      Config.instance.print_log(binding) if Config.instance.verbose
-
       if Dir[".git"].empty?
         raise NotAllowed, "ERROR: There is no \".git\" in #{Dir.pwd}."
       end
@@ -116,8 +114,6 @@ module Ballantine
     # @param [Hash] options
     # @return [Boolean]
     def init_variables(target, source, **options)
-      Config.instance.print_log(binding) if Config.instance.verbose
-
       # check commits are newest
       system("git pull -f &> /dev/null")
 
@@ -134,10 +130,7 @@ module Ballantine
 
     # @return [Boolean]
     def check_commits
-      Config.instance.print_log(binding) if Config.instance.verbose
-
       repo.check_commits
-
       true
     end
 
@@ -145,8 +138,6 @@ module Ballantine
     # @param [String] source
     # @return [Boolean]
     def print_commits(target, source)
-      Config.instance.print_log(binding) if Config.instance.verbose
-
       authors = Author.all
       if authors.empty?
         raise ArgumentError, "ERROR: There is no commits between \"#{target}\" and \"#{source}\""
