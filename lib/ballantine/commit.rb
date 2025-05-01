@@ -36,7 +36,7 @@ module Ballantine
       self
     end
 
-    def url; @url ||= "#{repo.url}/commit/#{long_hash}" end
+    def url = @url ||= "#{repo.url}/commit/#{long_hash}"
 
     # @return [String]
     def slack_message

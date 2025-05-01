@@ -70,7 +70,7 @@ module Ballantine
 
     private
 
-    def conf; Config.instance end
+    def conf = Config.instance
 
     # @param [Array<Commit>] commits
     # @param [Array(Integer, String)] count, word

@@ -53,7 +53,7 @@ module Ballantine
       end
     end
 
-    def url; @url ||= "https://github.com/#{owner}/#{name}" end
+    def url = @url ||= "https://github.com/#{owner}/#{name}"
 
     # @param [String] target
     # @param [String] source
@@ -126,7 +126,7 @@ module Ballantine
 
     private
 
-    def conf; Config.instance end
+    def conf = Config.instance
 
     # @param [String] name
     # @return [String] hash
