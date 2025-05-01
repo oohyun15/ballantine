@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    ballantine (0.1.5.pre.rc2)
+    ballantine (0.1.5)
       reline
       thor (~> 1.2.1)
 
