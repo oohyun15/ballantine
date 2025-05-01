@@ -40,6 +40,8 @@ module Ballantine
 
       conf.env = env
       value ? conf.set_data(key, value) : conf.print_data(key)
+
+      true
     end
 
     option "verbose", type: :boolean, default: false, desc: "Print a progress."
@@ -48,6 +50,9 @@ module Ballantine
     def diff(target, source = %x(git rev-parse --abbrev-ref HEAD).chomp)
       conf.verbose = options["verbose"]
       puts "$ ballantine diff #{target} #{source}" if conf.verbose
+
+      # stash uncommitted files
+      save_stash if conf.with_stash?
 
       # validate arguments
       validate(target, source, **options)
@@ -60,6 +65,11 @@ module Ballantine
 
       # print commits
       print_commits(target, source)
+
+      # restore stash
+      restore_stash if conf.with_stash?
+
+      true
     end
 
     desc "version", "Display version information about ballntine"
@@ -84,7 +94,7 @@ module Ballantine
         raise NotAllowed, "ERROR: There is no \".git\" in #{Dir.pwd}."
       end
 
-      if (uncommitted = %x(git diff HEAD --name-only).split("\n")).any?
+      if !conf.with_stash? && (uncommitted = %x(git diff HEAD --name-only).split("\n")).any?
         raise NotAllowed, "ERROR: Uncommitted file exists. stash or commit uncommitted files.\n#{uncommitted.join("\n")}"
       end
 
@@ -172,6 +182,18 @@ module Ballantine
         raise AssertionFailed, "Unknown print type: #{conf.print_type}"
       end
 
+      true
+    end
+
+    # @return [Boolean]
+    def save_stash
+      %x(git stash save &> /dev/null)
+      true
+    end
+
+    # @return [Boolean]
+    def restore_stash
+      %x(git stash apply &> /dev/null)
       true
     end
   end
