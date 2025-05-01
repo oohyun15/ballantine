@@ -16,7 +16,7 @@ describe Ballantine::CLI do
     it "returns ballantine config file" do
       expect(@cli.init).to be_truthy
       expect(Dir[file_path]).to eq([file_path])
-      expect(JSON.parse(File.read(file_path))).to eq({})
+      expect(JSON.parse(File.read(file_path))).to eq(Ballantine::Config.instance.send(:empty_data))
     end
 
     context "already init" do
@@ -34,7 +34,7 @@ describe Ballantine::CLI do
         it "returns ballantine config file" do
           expect(@cli.init).to be_truthy
           expect(Dir[file_path]).to eq([file_path])
-          expect(JSON.parse(File.read(file_path))).to eq({})
+          expect(JSON.parse(File.read(file_path))).to eq(Ballantine::Config.instance.send(:empty_data))
         end
       end
     end
