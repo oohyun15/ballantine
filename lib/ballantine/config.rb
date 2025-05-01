@@ -102,8 +102,12 @@ module Ballantine
 
     private
 
+    # @return [Hash{String => Object}]
     def empty_data = AVAILABLE_KEYS.map { |key| [key, nil] }.to_h
 
+    # @param [String] key
+    # @param [Object] value
+    # @return [Object]
     def sanitize_value(key, value)
       case key
       when KEY_RAISE_UNCOMMITTED then value == true || value == "true"
@@ -111,6 +115,8 @@ module Ballantine
       end
     end
 
+    # @param [String] env
+    # @return [String]
     def file_path(env = @env)
       case env
       when ENV_LOCAL then "./#{FILE_BALLANTINE_CONFIG}"
