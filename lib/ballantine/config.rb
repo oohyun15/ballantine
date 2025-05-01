@@ -56,7 +56,7 @@ module Ballantine
       JSON.parse(File.read(file_path)).each do |key, value|
         next unless AVAILABLE_KEYS.include?(key)
 
-        @data[key] = value
+        @data[key] = sanitize_value(key, value)
       end
 
       @loaded = true
@@ -86,7 +86,7 @@ module Ballantine
     def set_data(key, value)
       load_file unless @loaded
       raise InvalidParameter, "Key must be within #{AVAILABLE_KEYS}" unless AVAILABLE_KEYS.include?(key)
-      @data[key] = value
+      @data[key] = sanitize_value(key, value)
       File.write(file_path, JSON.pretty_generate(@data))
       value
     end
@@ -99,7 +99,7 @@ module Ballantine
     end
 
     # @return [Boolean]
-    def stash_uncommitted? = get_data(KEY_STASH_UNCOMMITTED) == true
+    def stash_uncommitted? = get_data(KEY_STASH_UNCOMMITTED)
 
     # @param [Binding] binding
     # @return [NilClass]
@@ -116,6 +116,13 @@ module Ballantine
     private
 
     def empty_data = AVAILABLE_KEYS.map { |key| [key, nil] }.to_h
+
+    def sanitize_value(key, value)
+      case key
+      when KEY_STASH_UNCOMMITTED then value == true || value == "true"
+      else value
+      end
+    end
 
     def file_path(env = @env)
       case env
