@@ -6,6 +6,9 @@ module Ballantine
 
     attr_reader :repo
 
+    # @return [Array<String>]
+    attr_reader :uncommitted
+
     class << self
       def exit_on_failure? = exit(1)
     end
@@ -14,7 +17,7 @@ module Ballantine
     option "force", type: :boolean, aliases: "-f", default: false, desc: "Initialize forcely if already initialized."
     desc "init", "Initialize ballantine"
     def init
-      conf.init_file(force: options["force"])
+      Config.instance.init_file(force: options["force"])
 
       puts "🥃 Initialized ballantine."
 
@@ -25,8 +28,8 @@ module Ballantine
     option "verbose", type: :boolean, default: false, desc: "Print a progress."
     desc "config [--env] [KEY] [VALUE]", "Set ballantine's configuration"
     def config(key = nil, value = nil)
-      conf.verbose = options["verbose"]
-      puts "$ ballantine config #{key} #{value}" if conf.verbose
+      Config.instance.verbose = options["verbose"]
+      puts "$ ballantine config #{key} #{value}" if Config.instance.verbose
 
       # check environment value
       if Config::AVAILABLE_ENVIRONMENTS.map { |key| !options[key] }.reduce(:&)
@@ -38,8 +41,8 @@ module Ballantine
       env = Config::AVAILABLE_ENVIRONMENTS.find { |key| options[key] }
       raise AssertionFailed, "Environment value must exist: #{env}" if env.nil?
 
-      conf.env = env
-      value ? conf.set_data(key, value) : conf.print_data(key)
+      Config.instance.env = env
+      value ? Config.instance.set_data(key, value) : Config.instance.print_data(key)
 
       true
     end
@@ -48,11 +51,8 @@ module Ballantine
     option Config::TYPE_SLACK, type: :boolean, aliases: "-s", default: false, desc: "Send to slack using slack webhook URL."
     desc "diff [TARGET] [SOURCE]", "Diff commits between TARGET and SOURCE"
     def diff(target, source = %x(git rev-parse --abbrev-ref HEAD).chomp)
-      conf.verbose = options["verbose"]
-      puts "$ ballantine diff #{target} #{source}" if conf.verbose
-
-      # stash uncommitted files
-      save_stash if conf.with_stash?
+      Config.instance.verbose = options["verbose"]
+      puts "$ ballantine diff #{target} #{source}" if Config.instance.verbose
 
       # validate arguments
       validate(target, source, **options)
@@ -67,7 +67,7 @@ module Ballantine
       print_commits(target, source)
 
       # restore stash
-      restore_stash if conf.with_stash?
+      restore_stash if @uncommitted.any?
 
       true
     end
@@ -81,28 +81,30 @@ module Ballantine
 
     private
 
-    def conf = Config.instance
-
     # @param [String] target
     # @param [String] source
     # @param [Hash] options
     # @return [NilClass] nil
     def validate(target, source, **options)
-      conf.print_log(binding) if conf.verbose
+      Config.instance.print_log(binding) if Config.instance.verbose
 
       if Dir[".git"].empty?
         raise NotAllowed, "ERROR: There is no \".git\" in #{Dir.pwd}."
       end
 
-      if !conf.with_stash? && (uncommitted = %x(git diff HEAD --name-only).split("\n")).any?
-        raise NotAllowed, "ERROR: Uncommitted file exists. stash or commit uncommitted files.\n#{uncommitted.join("\n")}"
+      if (@uncommitted = %x(git diff HEAD --name-only).split("\n")).any?
+        if Config.instance.with_stash?
+          save_stash
+        else
+          raise NotAllowed, "ERROR: Uncommitted file exists. stash or commit uncommitted files.\n#{@uncommitted.join("\n")}"
+        end
       end
 
       if target == source
         raise NotAllowed, "ERROR: target(#{target}) and source(#{source}) can't be equal."
       end
 
-      if options[Config::TYPE_SLACK] && !conf.get_data(Config::KEY_SLACK_WEBHOOK)
+      if options[Config::TYPE_SLACK] && !Config.instance.get_data(Config::KEY_SLACK_WEBHOOK)
         raise NotAllowed, "ERROR: Can't find any slack webhook. Set slack webhook using `ballantine config --#{Config::ENV_LOCAL} slack_webhook [YOUR_WEBHOOK]'."
       end
 
@@ -114,12 +116,12 @@ module Ballantine
     # @param [Hash] options
     # @return [Boolean]
     def init_variables(target, source, **options)
-      conf.print_log(binding) if conf.verbose
+      Config.instance.print_log(binding) if Config.instance.verbose
 
       # check commits are newest
       system("git pull -f &> /dev/null")
 
-      conf.print_type = options[Config::TYPE_SLACK] ? Config::TYPE_SLACK : Config::TYPE_TERMINAL
+      Config.instance.print_type = options[Config::TYPE_SLACK] ? Config::TYPE_SLACK : Config::TYPE_TERMINAL
       @repo = Repository.find_or_create_by(
         path: Dir.pwd,
         remote_url: %x(git config --get remote.origin.url).chomp,
@@ -132,7 +134,7 @@ module Ballantine
 
     # @return [Boolean]
     def check_commits
-      conf.print_log(binding) if conf.verbose
+      Config.instance.print_log(binding) if Config.instance.verbose
 
       repo.check_commits
 
@@ -143,7 +145,7 @@ module Ballantine
     # @param [String] source
     # @return [Boolean]
     def print_commits(target, source)
-      conf.print_log(binding) if conf.verbose
+      Config.instance.print_log(binding) if Config.instance.verbose
 
       authors = Author.all
       if authors.empty?
@@ -152,7 +154,7 @@ module Ballantine
 
       number = authors.size
 
-      case conf.print_type
+      case Config.instance.print_type
       when Config::TYPE_TERMINAL
         puts_r "Check commits before #{repo.name.red} deployment. (#{target.cyan}...#{source.cyan})", "#{repo.url}/compare/#{repo.from.hash}...#{repo.to.hash}".gray
         puts "Author".yellow + ": #{number}"
@@ -166,7 +168,7 @@ module Ballantine
         # send message to slack
         require "net/http"
         require "uri"
-        uri = URI.parse(conf.get_data(Config::KEY_SLACK_WEBHOOK))
+        uri = URI.parse(Config.instance.get_data(Config::KEY_SLACK_WEBHOOK))
         request = Net::HTTP::Post.new(uri)
         request.content_type = "application/json"
         request.body = JSON.dump({
@@ -179,7 +181,7 @@ module Ballantine
         response = Net::HTTP.start(uri.hostname, uri.port, req_options) { |http| http.request(request) }
         puts response.message
       else
-        raise AssertionFailed, "Unknown print type: #{conf.print_type}"
+        raise AssertionFailed, "Unknown print type: #{Config.instance.print_type}"
       end
 
       true
