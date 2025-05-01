@@ -12,8 +12,10 @@ module Ballantine
       ENV_GLOBAL,
     ].freeze
     KEY_SLACK_WEBHOOK = "slack_webhook"
+    KEY_STASH_UNCOMMITTED = "stash_uncommitted"
     AVAILABLE_KEYS = [
       KEY_SLACK_WEBHOOK,
+      KEY_STASH_UNCOMMITTED,
     ].freeze
     AVAILABLE_PRINT_INSTANCE_VARIABLES = [:@name, :@from, :@to].freeze
 
