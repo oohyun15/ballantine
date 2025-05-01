@@ -89,7 +89,7 @@ module Ballantine
       end
 
       if uncommitted.any? && Config.instance.raise_uncommitted?
-        raise NotAllowed, "ERROR: Uncommitted file exists. stash or commit uncommitted files.\n#{uncommitted.join("\n")}"
+        raise NotAllowed, "ERROR: Uncommitted file exists. stash or commit uncommitted files.\n\t#{uncommitted.join("\n\t")}"
       end
 
       if target == source
