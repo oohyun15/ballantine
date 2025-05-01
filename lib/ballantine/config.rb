@@ -44,7 +44,7 @@ module Ballantine
     # @return [Boolean] result
     def init_file(force: false)
       raise NotAllowed, "#{FILE_BALLANTINE_CONFIG} already exists." if Dir[file_path].any? && !force
-      File.write(file_path, JSON.pretty_generate(AVAILABLE_KEYS.map { |key| [key, nil] }.to_h))
+      File.write(file_path, JSON.pretty_generate(empty_data))
       @loaded = false
     end
 
@@ -114,6 +114,8 @@ module Ballantine
     end
 
     private
+
+    def empty_data = AVAILABLE_KEYS.map { |key| [key, nil] }.to_h
 
     def file_path(env = @env)
       case env
