@@ -59,7 +59,7 @@ module Ballantine
     # @param [String] source
     # @return [Boolean]
     def init_variables(target, source)
-      conf.print_log(binding) if conf.verbose
+      Config.instance.print_log(binding) if Config.instance.verbose
 
       current_revision = %x(git rev-parse --abbrev-ref HEAD).chomp
 
@@ -100,7 +100,7 @@ module Ballantine
 
     # @return [Boolean]
     def check_commits
-      conf.print_log(binding) if conf.verbose
+      Config.instance.print_log(binding) if Config.instance.verbose
 
       authors = retrieve_authors
       authors.each do |author|
@@ -126,8 +126,6 @@ module Ballantine
 
     private
 
-    def conf = Config.instance
-
     # @param [String] name
     # @return [String] hash
     def check_tag(name)
@@ -140,13 +138,13 @@ module Ballantine
 
     # @return [String]
     def check_format
-      case conf.print_type
+      case Config.instance.print_type
       when Config::TYPE_TERMINAL
         " - " + "%h".yellow + " %<(#{ljust})%s " + "#{url}/commit/%H".gray
       when Config::TYPE_SLACK
         "\\\`<#{url}/commit/%H|%h>\\\` %s - %an"
       else
-        raise AssertionFailed, "Unknown print type: #{conf.print_type}"
+        raise AssertionFailed, "Unknown print type: #{Config.instance.print_type}"
       end
     end
 
