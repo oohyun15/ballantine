@@ -69,7 +69,7 @@ module Ballantine
       end
     end
 
-    desc "version", "Display version information about ballntine"
+    desc "version", "Display version information about ballantine"
     def version
       puts "ballantine version #{Ballantine::VERSION}"
 
